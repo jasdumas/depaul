@@ -1,0 +1,236 @@
+---
+title: "CSC 423 - Chapter 3 Homework"
+author: "Jasmine Dumas"
+date: "September 29, 2015"
+output: pdf_document
+---
+
+page 103 #3.16 
+
+Dataset: LIQUIDSPILL
+
+``` {r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/LIQUIDSPILL.Rdata")
+head(LIQUIDSPILL, n = 12) # recreate table from the textbook
+tail(LIQUIDSPILL, n = 11)
+```
+Yes, the data does suggest that mass of the spill tends to diminish as time increases.
+
+The dependent variable is MASS (`LIQUIDSPILL$MASS`), and the independent variable is TIME (`LIQUIDSPILL$TIME`). If I want to determine how much mass deminishes each minute I will fit a `lm()` to the data. y = 5.22 - 0.11x is the equation which equates to a __reduction__ in MASS of approximately 5.11 pounds for every minute during a spill. 
+
+``` {r}
+x <- LIQUIDSPILL$TIME
+y <- LIQUIDSPILL$MASS
+reg <- lm(y~x)
+summary(reg)
+
+library(ggplot2)
+df = data.frame(x, y)
+liquid.plot <- ggplot(df, aes(x, y)) +
+               geom_point() + # scatterplot
+               geom_abline(intercept =5.22, slope = -0.11, colour = "green") + 
+               labs(title = "Spreading Rate of Spilled Liquid", 
+                    x = "Time (minutes)", y = "Mass (pounds)")
+
+print(liquid.plot) 
+```
+
+\pagebreak
+page 109 #3.22 
+
+Dataset: HEAT
+``` {r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/HEAT.Rdata")
+head(HEAT) # view table
+```
+*Given information: The dependent variable is the heat transfer enhancement ratio (`HEAT$HEAT`), y and the independent variable is the unflooded area ration (`HEAT$RATIO`), x.*
+
+a) Fit a least squares line to the data. The equation is y = 0.21 + 2.43x
+``` {r}
+heat.transfer.y <- HEAT$HEAT
+unflooded.x <- HEAT$RATIO  
+
+heated <- lm(heat.transfer.y ~unflooded.x)
+summary(heated)
+```
+
+b) plot of the data and the regression line on the plot
+``` {r}
+df.heat = data.frame(unflooded.x, heat.transfer.y)
+heated.plot <- ggplot(df.heat, aes(unflooded.x, heat.transfer.y)) +
+               geom_point() + # scatterplot
+               geom_abline(intercept = 0.21, slope = 2.43, colour = "red") + 
+               labs(title = "Thermal Characteristics of fin-tubes", 
+                    x = "Unflooded Area Ratio", y = "Heat Transfer Enhancement")
+
+print(heated.plot) 
+```
+
+c) Calculate SSE (Sum of Squared Errors) and s^2 (MSE/Mean of Squared Error)
+```{r}
+SSE = sum(resid(heated)^2)
+print(SSE)
+s.squared = SSE / nrow(HEAT) - 2 
+print(s.squared)
+```
+
+d) Calculate s and interpret its value. **The standard deviation for this data set is small, considering the x-axis and y-axis range all below 8, and the small sample size.**
+
+``` {r}
+RMSE = sqrt(deviance(heated)/df.residual(heated)) # standard deviation 
+print(RMSE)
+```
+
+\pagebreak
+page 114 #3.28 
+
+Dataset: BOXING2
+
+``` {r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/BOXING2.Rdata")
+print(BOXING2)
+```
+Conduct a test to determine whether blood lactate level (y) is lineraly related to perceived recovery (x). Use $\alpha$ = 0.10
+
+```{r}
+blood.y <- BOXING2$LACTATE
+recovery.x <- BOXING2$RECOVERY
+
+h.swank <- lm( blood.y ~ recovery.x) 
+
+summary(h.swank)
+```
+
+With a p-value of 0.0211 which is smaller than the $\alpha$ of 0.10 you could reject the $H_{0}$ which means percieved recovery (x) possibly contributes information to blood lactate level (y). 
+
+```{r}
+df.boxing = data.frame(recovery.x, blood.y)
+boxing.plot <- ggplot(df.boxing, aes(recovery.x, blood.y)) +
+               geom_point() + # scatterplot
+               geom_abline(intercept = 2.97, slope = 0.13, colour = "blue") + 
+               labs(title = "Massage Therapy for boxers", 
+                    y = "Blood Lactate Level", x = "Perceived Recovery")
+
+print(boxing.plot) 
+```
+
+\pagebreak
+page 127 #3.46 
+
+Dataset: SNOWGEESE
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/SNOWGEESE.Rdata")
+head(SNOWGEESE, n = 5)
+tail(SNOWGEESE, n = 5)
+```
+
+a) Plot data. weight change (y) & digestion efficiency (x). **There is a moderate positive trend between the independent and dependent variables.**
+
+```{r}
+digest.x = SNOWGEESE$DIGEFF
+weight.y = SNOWGEESE$WTCHNG
+down.coat <- data.frame(digest.x, weight.y)
+sg <- ggplot(down.coat, aes(digest.x, weight.y)) +
+            geom_point() + 
+            labs(title = "Snow Geese Feeding Trial", 
+                y = "Weight Chnage (%)", x = "Digestion Efficiency (%)")
+print(sg)
+```
+
+b) Find the coefficient of correlation, r. **r = 0.6122317 which suggests a moderate positive linear relationship between weight change and digestion efficiency.**
+
+```{r}
+cor(digest.x, weight.y)
+```
+
+c) conduct a test with $\alpha$ = 0.01. **With a p-value of 1.642e-05 which is smaller than the $\alpha$ of 0.01 means that you could reject the $H_{0}$ and accept the alternative.** 
+
+``` {r}
+snow.model <- lm(weight.y ~ digest.x)
+summary(snow.model)
+```
+
+d) repeat of parts b and c but only data from plants and not duck chow. **The coefficient of correlation is low, but still a positive correlation. The p-value is greater than the $\alpha$  or 0.01 which means you can fail to reject the $H_{0}$ which means that could be an effect of x on y but more data is needed.**
+
+```{r}
+plant.food <- subset(SNOWGEESE, DIET == "Plants          ", # white space in df included
+                     select = c(WTCHNG, DIGEFF))
+
+cor(plant.food$DIGEFF, plant.food$WTCHNG) # coefficient of correlation
+
+plant.model <- lm(plant.food$WTCHNG ~ plant.food$DIGEFF)
+summary(plant.model) # linear model
+
+```
+
+e) repeat parts a-d between digestion efficiency (y) and acid-detergent fiber (x). **There seems to be a negative trend between the independent and dependent variables. The coefficient of correlation is strongly negative which matches the plot. The p-value 1.636e-14 which is smaller than the $\alpha$ of 0.01 means that you could reject the $H_{0}$ and accept the alternative. With the exclusion of the Chow food, the p-value is 4.913e-05 which is still smaller than $\alpha$ which means you can similarily reject the $H_{0}$**
+```{r}
+# part a
+adfib.x = SNOWGEESE$ADFIBER
+digest.y = SNOWGEESE$DIGEFF
+botanists <- data.frame(adfib.x, digest.y)
+sg <- ggplot(botanists, aes(adfib.x, digest.y)) +
+            geom_point() + 
+            labs(title = "Snow Geese Feeding Trial - Botanists Investigation", 
+                x = "Acid-Detergent Fober (%)", y = "Digestion Efficiency (%)")
+print(sg)
+
+# part b
+cor(adfib.x, digest.y)
+
+# part c
+botanists.model <- lm(digest.y ~ adfib.x)
+summary(botanists.model)
+
+# part d
+botanists.food <- subset(SNOWGEESE, DIET == "Plants          ", # white space in df included
+                     select = c(DIGEFF, ADFIBER))
+
+cor(botanists.food$ADFIBER, botanists.food$DIGEFF) # coefficient of correlation
+
+botanists.model2 <- lm(botanists.food$DIGEFF ~ botanists.food$ADFIBER)
+summary(botanists.model2) # linear model
+```
+
+\pagebreak
+page 134 #3.56
+
+Dataset: WHITESPRUCE
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/WHITESPRUCE.Rdata")
+WHITESPRUCE
+```
+
+a) Scatterplot c) the least squares line on the scatter plot
+
+```{r}
+big.trees = data.frame(WHITESPRUCE$DIAMETER, WHITESPRUCE$HEIGHT)
+
+bt <- ggplot(big.trees, aes(WHITESPRUCE$DIAMETER, WHITESPRUCE$HEIGHT)) +
+            geom_point() + 
+            geom_abline(intercept = 9.14684, slope = 0.48147, colour = "purple") + 
+            labs(title = "Predicting Heights of Spruce Trees", 
+                x = "Breast Height Diameter (cm)", y = "Height (m)")
+print(bt)
+
+```
+
+b) least squares method to scatterplot. Fit a linear model to the data. **The y-intercept is 9.14684 and the slope is 0.48147**
+
+```{r}
+HEIGHT <- WHITESPRUCE$HEIGHT
+DIAMETER <- WHITESPRUCE$DIAMETER
+spruce <- lm(HEIGHT ~ DIAMETER)
+summary(spruce)
+```
+
+d) The p-value is 2.089e-09 and $\alpha$ = 0.05. Since the p-value is less than the $\alpha$ you can reject the $H_{0}$ which implies no effect of x on y and accept the alternative. The data provides sufficient evidence that the breast height diameter does contribute information about the prediction of the tree height.
+
+e) find a confidence interval for average height of white spruce trees with a breast height diameter of 20 cm. **The 90 % confidence interval for a mean breast height of 20 cm is 18.26972 19.28293.**
+
+```{r}
+# DIAMETER has to be the same variable name as the one used in the model
+predict(spruce, data.frame(DIAMETER = 20), interval="confidence", level=.90) 
+```
