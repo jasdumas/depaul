@@ -1,0 +1,242 @@
+---
+title: "CSC 423 Homework - Chapter 6 & 7"
+author: "Jasmine Dumas"
+date: "October 27, 2015"
+output: pdf_document
+geometry: margin=0.5in
+---
+```{r, echo = FALSE}
+library(knitr) # global settings
+library(formatR)
+library(rmarkdown)
+opts_chunk$set(tidy.opts=list(width.cutoff=60))
+```
+
+page 341 #6.8
+
+(a) Build a model for y, LOWBID and apply stepwise regression
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/FLAG2.Rdata")
+head(FLAG2)
+library(MASS)
+FLAG2 <- na.omit(FLAG2) # step() requires removal of missing data before
+full.road.model <- lm(LOWBID ~ DOTEST + LBERATIO + STATUS + DISTRICT + NUMBIDS + DAYSEST + RDLNGTH + PCTASPH + PCTBASE + PCTEXCAV + PCTMOBIL + PCTSTRUC + PCTTRAFF + SUBCONT, data = FLAG2)
+road.model <- step(full.road.model, direction="both")
+summary(road.model)
+```
+
+(b) Interpret the $\beta$'s
+
+For every 1-unit increase in DOTEST would be multiplied by 9.095e-01  
+For every 1-unit increase in LBERATIO would be multiplied by 8.297e+05  
+For every 1-unit increase in NUMBIDS would be multiplied by -1.315e+04  
+For every 1-unit increase in RDLNGTH would be multiplied by 6.601e+03  
+For every 1-unit increase in PCTBASE would be multiplied by 3.104e+05  
+For every 1-unit increase in PCTSTRUC would be multiplied by 3.351e+05  
+For every 1-unit increase in PCTTRAFF would be multiplied by -6.652e+05
+
+(c) The dangers of drawing inferences from a stepwise model: A large number of t-test's have been conducted leading to a high probability of making one or more Type I or Type II errors being that we have included some unimportant independent variables in the the model, and second that we have eliminated some important independent variables.  Another danger is that we only tested a first order model/main effects and didn't include and higher order terms or interaction terms. We primarily use stepwise regression just to tell us which of the independent variable out of the masses are important to include into the model.
+
+\pagebreak
+page 343 #6.9
+
+```{r}
+# Best Subset
+library(leaps)
+yvar = c("LOWBID")
+xvars = c("DOTEST","LBERATIO" ,"STATUS","DISTRICT" ,"NUMBIDS", "DAYSEST" , "RDLNGTH" , "PCTASPH" , "PCTBASE",  "PCTEXCAV" ,"PCTMOBIL", "PCTSTRUC", "PCTTRAFF", "SUBCONT" )
+best.model = leaps(x = FLAG2[,xvars], y=FLAG2[,yvar], names=xvars, nbest=3, method="adjr2")
+best.model$which # shows the T or F of variable inclusion in the model
+best.model$adjr2
+df = best.model$which
+```
+
+Yes, as evident from row `which(df[19,])` the "best subset" model did select the same 7 variables as chosen in the stepwise regression method. `apply(df, 1, which)`
+
+```{r, echo = F, eval = T}
+which(df[19,])
+```
+
+\pagebreak
+page 343 #6.10
+
+(a) Stepwise regression (with stepwise selection) to find the "best predictors" of heat rate (y)
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/GASTURBINE.Rdata")
+head(GASTURBINE, n=5)
+tail(GASTURBINE, n=5)
+# stepwise/stepwise regression
+GASTURBINE <- na.omit(GASTURBINE) # step() requires removal of missing data before if any
+full.gas.model <- lm(HEATRATE ~ ENGINE + SHAFTS + RPM + CPRATIO + INLETTEMP + EXHTEMP + AIRFLOW + POWER + LHV + ISOWORK,  data = GASTURBINE)
+gas.model <- step(full.gas.model, direction="both")
+summary(gas.model)
+```
+
+(b) Stepwise with backward elimination
+```{r}
+gas.model <- step(full.gas.model, direction="backward")
+summary(gas.model)
+```
+
+(c) All-possible-regressions-selection / "best subset"
+```{r}
+library(leaps)
+y = c("HEATRATE")
+x = c("SHAFTS","RPM","CPRATIO","INLETTEMP","EXHTEMP","AIRFLOW","POWER","HEATRATE", "LHV","ISOWORK")
+best.model <- leaps(x = GASTURBINE[,x], y=GASTURBINE[,y], names=x, nbest=3, method="adjr2")
+best.model$which # shows the T or F of variable inclusion in the model
+apply(best.model$which, 1, which) # consise print-out of each best model
+best.model$adjr2
+```
+
+(d) Which Independent variable are consistency selected out of the previous results:    
+Stepwise: EXHTEMP, POWER, ISOWORK     
+Backwards elimination: ENGINE, SHAFTS, RPM, CPRATIO, INLETTEMP, AIRFLOW, LHV      
+best subset: POWER, LHV, CPRATIO, RPM
+
+(e) I would use the previous results from each of the model selection
+  techniques to select the most important variables (that also exist
+  most frequently in across each model) based on each final outcome of
+  the elimination techniques and take into account their p-value and AIC
+  score.
+
+
+\pagebreak
+page 377 #7.2
+
+(a) The problems that exist when multicollinearity exist are: high
+  correlations among independent variables increase the likelihood of
+  rounding errors in the calculations of the beta estimate from the
+  underlying matrix operation from the computers difficulty in
+  inverting the information matrix. Multicollinearity can also cause
+  misleading and confusing results of the signs of the parameter
+  estimates than what is expected.
+  
+(b) You can detect multicollinearity with several methods:  
+
+* Calculate the coefficient of correlation between each pair of independent
+  variables in the model; if one or more of the r values is close
+  to 1 or -1, the variables are highly correlated and a severe
+  milticollinearity problem may be present.  
+  
+*  Non-significant t-test's for the individual beta parameters when
+  the F-test for overall model adequacy is significant and estimates
+  with opposite signs from what is expected.  
+  
+*  Calculation of the variance inflation factor (vif) for the individual
+  factors.
+
+(c) Solutions to address multicollinearity are:
+
+* Drop one or more of the correlated independent variables
+
+*  if the correlate variables are kept in the model, avoid making
+  inferences about the individual parameters.
+  
+* Use a designed experiment
+
+\pagebreak
+
+page 377 #7.5
+
+(a) No extreme multicollinearity exists according in the correlation matrix
+
+(b) According to the multiple regression output on page 190, There is evidence for multicollinearity: Significant F-test, with p-value < 0.001 when there are multiple non-significant (high p-values) independent x variables. 
+
+\pagebreak
+
+page 378 #7.10
+
+(a) fit a first-order model to the data, E(y) = 5.71059 + 0.62597 LIVEWT
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/STEERS.Rdata")
+head(STEERS)
+DRESSWT = STEERS$DRESSWT
+LIVEWT = STEERS$LIVEWT
+steer.model <- lm(DRESSWT ~ LIVEWT, data=STEERS)
+summary(steer.model)
+```
+
+(b) 95% prediction interval for the dressed weight of a 300 pound steer
+```{r}
+predict(steer.model, newdata=data.frame(DRESSWT = 300), interval="prediction", level=0.95)
+```
+
+(c) Yes, The interval is tight as being a prediction interval and with the single x-variable of 300 the interval is a close approximation as to have minimal complaints from customers.
+
+
+
+\pagebreak
+page 381 #7.20
+
+(a) Scatter plot of points. There seems to be a negative linear relationship between X and Y possibly even curvilinear sloping up.
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/EX7_20.Rdata")
+EX7_20
+plot(EX7_20$X, EX7_20$Y, main="EX7_20 Scatterplot", pch="+", col="darkblue")
+```
+
+(b)  calculate ln x and ln y, then plot the log transformed data on another scatter plot. This plot shows similarly to the other plot a negative linear relationship and possibly a curvilinear sloping down.
+```{r}
+EX7_20$Xln <- log(EX7_20$X)
+EX7_20$Yln <- log(EX7_20$Y)
+plot(EX7_20$Xln, EX7_20$Yln, main="EX7_20 Scatterplot: Log Transformation", pch="+", col="orange")
+```
+
+(c) Fit transformed data to model equation. The  F-statistic: 180.7 on 1 and 9 DF,  p-value: 2.911e-07 is high with a significant p-value above the alpha = 0.05.
+```{r}
+Yln = EX7_20$Yln
+Xln = EX7_20$Xln
+logs.on.logs <- lm(Yln ~ Xln, data=EX7_20)
+summary(logs.on.logs)
+```
+
+(d) prediction of y, when x=30
+```{r}
+exp(predict(logs.on.logs, newdata = data.frame(Xln = 30), interval="prediction", level=0.95))
+```
+
+\pagebreak
+page 381 #7.21
+
+(a) Coefficient of correlation between y and x1. Since the value is so low (0.0025) there seems to be no evidence of a linear relationship between y and x1
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/HAMILTON.Rdata")
+head(HAMILTON)
+cor(HAMILTON$X1, HAMILTON$Y)
+```
+
+(b) Coefficient of correlation between y and x2. Since the value is so low (0.43) there seems to be no evidence of a linear relationship between y and x2
+```{r}
+cor(HAMILTON$X2, HAMILTON$Y)
+```
+
+(c) Based on the previous results, I do not think that the model will be a useful predictor of sale price
+
+(d) Fit the model: y = -45.154136 + 3.097008 X1 + 1.031859 X2   
+The R^2 value & adjusted R^2 is very high (0.9998) and the F-statistic has a significant p-value so that would imply that the model disagrees with the findings in the previous answer in part c.
+```{r}
+ham <- lm(Y ~ X1 + X2, data=HAMILTON)
+summary(ham)
+```
+
+(e) Coefficient of correlation between x1 and x2. The result is close to -1 implying there is high correlation between x1 and x2.
+```{r}
+cor(HAMILTON$X1, HAMILTON$X2)
+```
+
+(f) I would not recommend this strategy for this example. The confidence for E(y) and prediction intervals for y generally remain unaffected as long as the values of the independent variables used to predict y follow the same pattern of multicollinearity exhibited in the sample data. The x1 and x2 variables may not be very redundant.
+
+\pagebreak
+page 381 #7.22
+
+(a) Independent variables that are moderately or highly correlated:   
+(5) Foreign Status with (3) Race  -0.515
+(9) Years in graduate program with (7) Year GRE was taken -0.602
+
+(b) If those independent variables are left in the model, you could observe unreliable beta estimates and incorrect signs.
+
+

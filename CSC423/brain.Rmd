@@ -1,0 +1,120 @@
+---
+title: "CSC 423 - Data Analysis Course Project"
+author: "Jasmine Dumas"
+date: "November 9, 2015"
+output: word_document
+---
+Preliminary Analysis
+
+1. **Data source**: copy/paste into a text editor to save as a .txt file and save in the same folder as current document, brain.Rmd    
+Source: http://lib.stat.cmu.edu/DASL/Datafiles/Brainsize.html
+```{r}
+setwd("/Users/jasminedumas/Desktop/depaul/CSC423")
+brain <- read.table("braindata.txt", header = TRUE, sep = "", na.strings="¥")
+brain <- na.omit(brain) # remove 2 rows of missing data
+head(brain)
+ncol(brain) # number of columns
+names(brain)
+nrow(brain) # number of rows
+```
+
+2. **Research Question**: Are the size and weight of your brain indicators of your mental capacity? In this study by Willerman et al. (1991) the researchers use Magnetic Resonance Imaging (MRI) to determine the brain size of the subjects. The researchers take into account gender and body size to draw conclusions about the connection between brain size and intelligence.    
+3. **Dependent Variable**: MRI_Count   
+4. **Independent Variable**: Gender, FSIQ, VIQ, PIQ, Weight, Height    
+5. **Quantitative vs. Qualitative**: The quantitative variables are MRI_Count, FSIQ, VIQ, PIQ, Weight, Height. The qualitative variable is Gender    
+6. **Data cleansing**: The NA strings were specified in the `read.table` function and were removed with the `na.omit` function. The Gender variable will needed to be coded as 0, 1 which R does automatically when assembling the model.    
+7. **Correlation and Scatter plots**: The only predictor variables that seem to be linear are height and weight. It is expected to see that Weight and Height is correlated.
+```{r}
+# Correlation between the repsonse variable and the independent variables (Should be high)
+cor(brain$FSIQ, brain$MRI_Count)
+cor(brain$VIQ, brain$MRI_Count)
+cor(brain$PIQ, brain$MRI_Count)
+cor(brain$Weight, brain$MRI_Count)
+cor(brain$Height, brain$MRI_Count)
+# Correlation between the independent variables (Should be low)
+cor(brain$FSIQ, brain$VIQ)
+cor(brain$FSIQ, brain$PIQ)
+cor(brain$FSIQ, brain$Weight)
+cor(brain$FSIQ, brain$Height)
+cor(brain$VIQ, brain$PIQ)
+cor(brain$VIQ, brain$Weight)
+cor(brain$VIQ, brain$Height)
+cor(brain$PIQ, brain$Weight)
+cor(brain$PIQ, brain$Height)
+cor(brain$Height, brain$Weight)
+#############################################################################
+library(ggplot2)
+ggplot(brain, aes(y = MRI_Count, x = FSIQ)) + geom_point() 
+ggplot(brain, aes(y = MRI_Count, x = VIQ)) + geom_point() 
+ggplot(brain, aes(y = MRI_Count, x = PIQ)) + geom_point() 
+ggplot(brain, aes(y = MRI_Count, x = Weight)) + geom_point() 
+ggplot(brain, aes(y = MRI_Count, x = Height)) + geom_point() 
+```
+
+8. Checking of assumptions    
+•	Slight sign of heteroscedasticity was identified and transformation was conducted to address the issue    
+•	There was no sign of autocorrelation on both original and transformed model    
+•	No appararent outlier exists on original dataset   
+
+9. Checking for interaction terms    
+•	No interaction terms were found for both full and optimized model     
+•	Both full and optimized model with interaction terms did not have any parameter that was statistically significant    
+•	Also, adding interaction terms lowered adjusted R squared value     
+
+10. Checking for higher order models (quadratic?)    
+•	No higher order models were found for both full and optimized model     
+•	Full model had only 1 parameter (weight) with statistical significance at higher order which was shown as stasticially insignificant in linear model.     
+•	Optimized model did not have any parameters with higher order that was statistically significant      
+•	Further examination is needed on weight variable    
+
+11. Examination of residuals     
+•	3 influencial data points were identified (#6, #8 , #13) and therefore identified outlier (record #6) was removed     
+•	No extreme outlier was identified on new model.         
+•	There was no sign of autocorrelation based on Durbin Watson Test.       
+
+12. Transformations if appropriate      
+•	Based on model result, both log and inverse transformation was attempted.      
+•	Inverse model improved model output with higher stasticial parameters’ significance and improved adjusted r squared value.      
+
+
+#################### Newest R Code with Split Data ##################################
+
+```{r}
+brain <- read.table("braindata.txt", header = TRUE, sep = "", na.strings="¥")
+brain2 <- na.omit(brain) # remove 2 rows of missing data -- equivalent to Book2
+brain2[6,]
+brain3 <- brain2[-6, ] # removed 6th outlier entry -- equivalent to Book3
+
+brain4 <- split(brain3, brain3$FSIQ <= 108)
+brain4 <- brain4$`TRUE`
+brain5 <- split(brain3, brain3$FSIQ >= 130)
+brain5 <- brain5$`TRUE`
+
+invy_low = 1 / brain4$MRI_Count
+finalmodel_low <- lm(invy_low ~ Gender + PIQ + Height, data = brain4)
+summary(finalmodel_low)
+finalmodel_low$coefficients
+############################
+invy_high = 1 / brain5$MRI_Count
+finalmodel_high <- lm(invy_high ~ Gender + PIQ + Height, data = brain5)
+summary(finalmodel_high)
+finalmodel_high$coefficients
+
+###########################
+
+finalmodel <- lm(brain3$MRI_Count ~ brain3$Gender + I(brain3$PIQ^2)+ brain3$Height)
+summary(finalmodel)
+
+# residual plot
+plot(brain3$MRI_Count, resid(finalmodel), main = "Final Model Residual Plot", col = "blue", pch = "*")
+
+plot(brain4$MRI_Count, resid(finalmodel_low), main = "Final Model Residual Plot - low", col = "blue", pch = "*")
+
+plot(brain5$MRI_Count, resid(finalmodel_high), main = "Final Model Residual Plot", col = "blue", pch = "*")
+```
+
+
+
+
+
+

@@ -1,0 +1,88 @@
+---
+title: "CSC 423 - Data Analysis Project"
+author: "Jasmine Dumas"
+date: "October 26, 2015"
+output: word_document
+---
+
+1. Get the data from source UCI   
+Source: http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin
+```{r}
+data <- read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/breast-cancer-wisconsin.data", header = FALSE, sep = ",", na.strings="?")
+head(data)
+
+```
+
+2. Clean the data: Add column headers to the data & remove an missing values if any   
+Attribute Information: (class attribute has been moved to last column)
+
+```{r}
+colnames(data) <- c("Sample_code_number", "Clump_Thickness", "Cell_Size", "Cell_Shape", "Marginal_Adhesion", "Single_Epithelial_Cell_Size", "Bare_Nuclei", "Bland_Chromatin", "Normal_Nucleoli", "Mitoses", "Class" )
+head(data)
+data <- na.omit(data) # required by some regression techniques
+```
+
+3. General info statements on the cleaned table:   
+* The data will need to be transformed to account for scalar/dummy data (1-10) and categorical response variable but R takes care of that  
+* The response variable is Class  
+* The first column is sample id number and won't be apart of the model
+
+```{r}
+summary(data) # the artributes are on a scale of 1-10 ranking
+nrows(data) # There are 699 Instances
+```
+
+4. Exploratory scatter plots against the response variable data$Class (2 for benign, 4 for malignant)
+```{r}
+library(ggplot2)
+source('~/Desktop/depaul/CSC423/multiplot.R', echo=TRUE) # multiplot function from R Cookbook
+plot1 <- ggplot(data, aes(y = Class, x = Clump_Thickness)) + geom_point() 
+
+```
+
+5. Trial - Full model
+```{r}
+data.model <- lm(Class ~ Clump_Thickness, data=data)
+summary(data.model)
+```
+
+y = 1.625308 + 0.241897*5
+###########################################
+
+```{r}
+#maybe beer data 
+beer = read.table("http://www.craftbeeranalytics.com/uploads/3/3/8/9/3389428/ratebeer_beerjobber.txt", header=TRUE, sep="")
+beer.model1 = lm(score.overall ~ abv + ratings + score.by.style + brewer, data=beer) # low F-statistic
+summary(beer.model1)
+# re-run model
+beer.model2 = lm(score.overall ~ abv + ratings + score.by.style, data=beer) # better significant results
+summary(beer.model2)
+# another run with style as a dummy variable
+beer.model3 = lm(score.overall ~ abv + ratings + score.by.style + style, data=beer)
+summary(beer.model3)
+# stepwise regression for the final beer.model
+full.beer = step(beer.model3, direction="both")
+# no multicollinearity between variables
+cor(beer$abv, beer$ratings)
+cor(beer$abv, beer$score.by.style)
+cor(beer$ratings, beer$score.by.style)
+
+###### with y - we want to see high values close to 1
+cor(beer$abv, beer$score.overall)
+cor(beer$score.overall, beer$score.by.style)
+cor(beer$ratings, beer$score.overall)
+# what do these variables all look like against the response y varaible
+library(ggplot2)
+ggplot(beer, aes(y = score.overall, x = abv)) + geom_point() # log?
+ggplot(beer, aes(y = score.overall, x = ratings)) + geom_point() # log?
+ggplot(beer, aes(y = score.overall, x = score.by.style)) + geom_point() # weird-linear?
+# these graphs look weird maybe try inverse or logrithm scale and re-graph
+log.abv = log(beer$abv)
+inv.abv = 1/(beer$abv)
+
+```
+
+
+
+
+

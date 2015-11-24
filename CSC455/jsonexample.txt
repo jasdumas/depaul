@@ -1,0 +1,9 @@
+{"__complex__": true, 
+"real": 1, 
+"imag": 2, 
+"essentials": "towel",
+"answers":{"lifetheuniverseandeverything":42, "restaurant_location":"at the end of the universe"}}
+somedelimiter {"__complex__": false, "real": 80, "imag": 50, "essentials": "guide ttg", 
+"answers":{"lifetheuniverseandeverything":24, "restaurant_location":"at the other end of the universe"}}
+{"__complex__": true, "real": 1, "imag": 2, "essentials": "towel","answers":{"lifetheuniverseandeverything":42, "restaurant_location":"at the end of the universe"}} somedelimiter {"__complex__": false, "real": 80, "imag": 50, "essentials": "guide ttg",  "restaurant_location":"at the other end of the universe"} #this is not in the attached file
+

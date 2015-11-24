@@ -1,0 +1,484 @@
+---
+title: "CSC 423 - Chapter 4 & 5 Homework"
+author: "Jasmine Dumas"
+date: "October 17, 2015"
+output: pdf_document
+---
+
+
+Submit: page 184 #4.6
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/STREETVN.Rdata")
+head(STREETVN, n= 15)
+```
+
+(a) First order model for a mean annual earnings, E(y), as a function of age(x1), and hours worked (x2):
+
+y = $\beta_{0}$ + $\beta_{1}$ AGE + $\beta_{2}$ HOURS
+
+(b) Least squares prediction on SAS output from textbook:
+
+y = -20.35 + 13.35 AGE + 243.71 HOURS
+
+(c) Interpret $\beta$ coefficients from the model: 
+
+$\beta_{0}$ = -20.35 implies we are starting in the negative quadrant
+
+$\beta_{1}$ implies for every 1-unit increase in annual earnings, AGE is multiplied by 13.35
+
+$\beta_{2}$ implies for every 1-unit increase in annual earnings, HOURS is multiplied by 243.71
+
+(d) Test of the global utility of the model (at $\alpha$ = 0.01). 
+
+$H_{0}$: $\beta_{1}$ = $\beta_{2}$ = 0    
+
+(df) degrees of freedom in the numerator = k, `k = 2`; (df) degrees of freedom in the denominator =  [n - (k + 1)], 12 (k is found in the original F-statistic equation where n is the sample size and k is the number of terms in the model).
+
+$H_{A}$: At least one of the coefficients is nonzero
+
+Test Statistic: F = Mean square (model) / Model square (error); F = `2509116 / 300016`, F = 8.363274
+
+p-value = 0.0053
+
+Since the $\alpha$ = 0.01 is larger than the significance level of 0.0053, the data provides strong evidence that at least one of the model coefficients is nonzero. The overall model appears to be statistically useful for predicting annual earnings.
+
+(e) Find and interpret the value of the adjusted multiple coefficient of determination $R_{A}^2$ = 0.5126 which indicates the model is not very adequate.
+``` {r}
+R.a.sq = 1 - ((15-1) / (15 - (2 + 1))) * (1 - 0.5823)
+R.a.sq
+```
+
+(f) Find and interpret s, the estimated standard deviation of the error term. We expect most (approximately 95%) of the observed y-values to lie within 2s of their respective least squares predicted values, y-hat. An error prediction of 547.7372 is undesirable since the annual earnings is small, `mean(STREETVN$EARNINGS)`, 2577.133.
+```{r}
+s = sqrt(300016)
+s
+```
+
+(g) Is age (x1) a statistically useful predictor of annual earnings? $\alpha$ = 0.01 is less than the p-value of 0.1074 [Pr > |t|] so we can infer that age is not a statistically useful predictor of annual earnings.
+
+(h) The 95% confidence interval for $\beta_{2}$ is 105.33 and 382.09. This interval is positive as the x2 is time in hours. Since $\beta_{2}$ represents the slope of the line relating y to x2 for a fixed x1 in a first-order model. $\beta_{2}$ measures the change in E(y) (annual earnings) for every 1-unit increase in x2 (HOURS) when the other independent variable in the model is held fixed (AGE).
+
+\pagebreak
+page 186 #4.10
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/SNOWGEESE.Rdata")
+head(SNOWGEESE, n=5)
+tail(SNOWGEESE, n=5)
+```
+
+(a) The least squares prediction equation for weight change:
+
+y = 12.2 - 0.0265 DIGEST - 0.458 ADFIBRE
+```{r}
+WTCHNG = SNOWGEESE$WTCHNG
+DIGEFF = SNOWGEESE$DIGEFF
+ADFIBER = SNOWGEESE$ADFIBER
+
+model = lm(WTCHNG ~ DIGEFF + ADFIBER)
+summary(model)
+```
+
+
+(b) Interpret $\beta$ estimates in the equation from part a:
+
+$\beta_{0}$ = 12.2
+
+$\beta_{1}$ implies for every 1-unit increase in weight change, DIGEST is multiplied by -0.0265
+
+$\beta_{2}$ implies for every 1-unit increase in weight change, ADFIBRE is multiplied -0.458
+
+(c) Conduct an F-test for overall model adequacy using $\alpha$ = 0.01. Since the $\alpha$ = 0.01 is larger than the significance level of 0.000, the data provides strong evidence that at least one of the model coefficients is nonzero. The overall model appears to be statistically useful for predicting weight change.
+
+(d) Find and Interpret values for $R^2$ and $R_{A}^2$ and determine which is the preferred measure of model fit: $R_{A}^2$ = 0.5046. The $R_{A}^2$ is the preferred measure for model fit.
+
+(e) Conduct a test to determine if digestion efficiency, x1 is a useful linear predictor of weight change using $\alpha$ = 0.01. $\alpha$ = 0.01 is less than the p-value of 0.622555 [Pr > |t|] so we can infer that digestion efficiency is not a statistically useful predictor of weight change. 
+
+(f) Form a 99% confidence interval for $\beta_{2}$:
+```{r}
+beta2 <- -0.45783
+t_0.005 <- 9.925 # from page 758, df = 2
+s_beta_i <- 0.12828
+
+beta2 + t_0.005*s_beta_i # upper bounds
+beta2 - t_0.005*s_beta_i # lower bounds
+```
+
+With the interval (0.815349, -1.731009) we are 99% confident that $\beta_{2}$ falls between the interval. Since $\beta_{2}$ is the slope of the line relating weight change (y) to acid detergent fiber percentage (x2) we can conclude that weight change increases 0.815349% to -1.731009% for every 1-unit increase in acid detergent fiber percentage (x2), holding the digestion efficiency is constant.
+
+\pagebreak
+page 193 #4.22 
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/QUASAR.Rdata")
+head(QUASAR, n=5)
+REDSHIFT <- QUASAR$REDSHIFT # x1
+LINEFLUX <- QUASAR$LINEFLUX # x2
+LUMINOSITY <- QUASAR$LUMINOSITY # x3
+AB1450 <- QUASAR$AB1450 # x4
+RFEWIDTH <- QUASAR$RFEWIDTH # y
+
+qu_model = lm(RFEWIDTH ~ REDSHIFT + LINEFLUX + LUMINOSITY + AB1450)
+summary(qu_model)
+```
+
+The 95% prediction interval for the fifth observation of the QUASAR data set is (90.69, 158.57), which implies that the RFEWIDTH (y) would fall between that interval for the fifth observation, as it does with RFEWIDTH = 114 according to the SPSS output on 194.
+
+\pagebreak
+page 199 #4.28 
+
+(a) least squares prediction equation
+
+y = 1041.89 - 13.23 AGE + 103.30 HOURS + 3.62 AGEHRS
+
+(b) Estimated slope relating to annual earnings (y) to age (x1) when number of hours worked (x2) is 10: **22.97**
+
+Estimated x1 slope = $\beta_{1}$ + $\beta_{3}$ * $x_{2}$ represents the change in E(y) for every 1-unit increase in, $x_{1}$, holding $x_{2}$ fixed
+
+Estimated x1 slope = - 13.23 + (3.62 * 10)
+
+(c) Estimated slope relating annual earnings (y) to hours worked (x2) when age (x1) is 40: **248.1**
+
+Estimated x2 slope = $\beta_{2}$ + $\beta_{3}$ * $x_{1}$ represents the change in E(y) for every 1-unit increase in, $x_{2}$, holding $x_{1}$ fixed
+
+Estimated x2 slope = 103.30 + (3.62 * 40)
+
+(d) Null hypothesis for whether age (x1) and hours worked (x2) interact:
+
+$H_{0}$: $\beta_{1}$ = $\beta_{2}$ = $\beta_{3}$ = 0
+
+(e) p-value from part d: 0.0124 from text book page 199, SAS printout
+
+(f) An $\alpha$ = 0.05 does exceed the p-value, so this model is statistically useful predictor of annual earnings.
+
+\pagebreak
+page 207 #4.40
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/WAFER.Rdata")
+head(WAFER)
+```
+
+(a) construct a scatter plot: The relationship between temperature and failure time appears curvilinear
+
+```{r}
+library(ggplot2)
+TEMP.x <- WAFER$TEMP
+FAILTIME.y <- WAFER$FAILTIME
+wafer.df = data.frame(TEMP.x, FAILTIME.y)
+wafer.plot <- ggplot(wafer.df, aes(TEMP.x, FAILTIME.y)) +
+               geom_point() + # scatterplot
+               labs(title = "Failure times of silicon wafer microchips", 
+                    x = "Temperature (C)", y = "Failure Time (hours)")
+
+print(wafer.plot) 
+```
+
+(b) fit model and give least squares prediction equation: 
+
+y = 154242.914 - 1908.850x + 5.929x^2
+
+```{r}
+temp_sq <- TEMP.x^2 # to get the second-order term
+wf_model = lm(FAILTIME.y ~ TEMP.x + temp_sq)
+summary(wf_model)
+```
+
+(c) Test to determine if there is an upward curvature in the relationship between failure time and solder temperature. $\alpha$ = 0.05: The figure shows an upward curvature in the relationship between failure time and temperature. To test this we can state:
+
+$H_{0}$: $\beta_{2}$ = 0 (no curvature in response curve)
+
+$H_{a}$: $\beta_{2}$ > 0 (upward concavity exist in the response curve)
+
+The test statistic for $\beta_{2}$ is t = 5.659 and the associated two-tailed p-value is 1.86e-05; where the one-tail appropriate p-value is ` 1.86e-05 / 2`. The alpha exceeds this p-value, there is strong evidence of upward curvature in the population, implying Failure time increases more faster per unit than increase in Temperature.
+
+\pagebreak
+page 226 #4.59
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/WHEATRNA.Rdata")
+head(WHEATRNA)
+```
+
+(a) least square prediction equation from MINITAB printout on page 226:
+
+y = 80.2 + 156$x_{1}$ - 42$x_{1}^2$ + 273$x_{2}$ + 760 $x_{1}$$x_{2}$ + 47 $x_{1}$$x_{2}^2$
+
+(b) determine model usefulness: F = 417.05, p-value = 0.000, since $\alpha$ = 0.01 is greater than the p-value, this model is statistically useful for predicting transcript copy number (y)
+
+(c) Transcript copy number (y) could be curvilinear related to proportion of RNA to $x_{1}$, because $x_{1}$ is positive.
+\pagebreak
+
+Submit: page 271 #5.8
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/GASTURBINE.Rdata")
+head(GASTURBINE, n=5)
+tail(GASTURBINE, n=5)
+```
+
+Scatter plots relating heat rate (y) to each of the independent variables:
+
+```{r, fig.width=10, fig.height=6}
+library(ggplot2)
+
+rpm <- ggplot(GASTURBINE, aes(y = HEATRATE, x = RPM)) + geom_point() 
+cpratio <- ggplot(GASTURBINE, aes(y = HEATRATE, x = CPRATIO)) + geom_point()
+inlettemp <- ggplot(GASTURBINE, aes(y = HEATRATE, x = INLETTEMP)) + geom_point()
+exhtemp <- ggplot(GASTURBINE, aes(y = HEATRATE, x = EXHTEMP)) + geom_point()
+airflow <- ggplot(GASTURBINE, aes(y = HEATRATE, x = AIRFLOW)) + geom_point()
+power <- ggplot(GASTURBINE, aes(y = HEATRATE, x = POWER)) + geom_point()
+lhv <- ggplot(GASTURBINE, aes(y = HEATRATE, x = LHV)) + geom_point()
+isowork <- ggplot(GASTURBINE, aes(y = HEATRATE, x = ISOWORK)) + geom_point()
+            
+# function credit: www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+source('~/Desktop/depaul/CSC423/multiplot.R')   
+multiplot(rpm, cpratio, inlettemp, exhtemp, airflow, power, lhv, isowork, cols = 4)
+```
+
+
+Hypothesize a polynomial model relating y to each independent variable for each plot:
+
+1. Heat rate vs RPM: positive linear relationship
+
+2. Heat rate vs INLETTEMP: negative linear relationship
+
+3. Heat rate vs AIRFLOW: quadratic second-order model relationship
+
+4. Heat rate vs LHV: quadratic second-order model relationship
+
+5. Heat rate vs CPRATIO: quadratic second-order model relationship
+
+6. Heat rate vs EXHTEMP: negative linear relationship
+
+7. Heat rate vs POWER: quadratic second-order model relationship
+
+8. Heat rate vs ISOWORK: quadratic second-order model relationship
+
+\pagebreak
+page 272 #5.10
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/TIRES2.Rdata")
+head(TIRES2, n=7)
+```
+
+(a) Scatter plot of data:
+
+```{r}
+rough <- ggplot(TIRES2, aes(y = Y_THOUS, x = X_PSI)) + 
+              geom_point(colour = "darkblue") +
+              labs(title = " Tire wear and pressure", 
+                   x ="Pressure (lbs per square inch)", y = "Mileage (Thousands)")
+print(rough)
+```
+
+(b) for x = 30, 31, 32, 33 the type of model I would suggest would be a positive linear relationship, a simple first-order model. For x = 33, 34, 35, 36 the type of model I would suggest would be curvilinear, negative second-order model.
+
+\pagebreak
+page 281 #5.17
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/QUASAR.Rdata")
+head(QUASAR)
+```
+
+(a) Complete second-order model with: REDSHIFT = x1    LINEFLUX = x2    AB1450 = x4
+
+E(y) = $\beta_{0}$ + $\beta_{1}$$x_{1}$  + $\beta_{2}$$x_{2}$ + $\beta_{4}$$x_{4}$ +
+$\beta_{4}$$x_{1}$$x_{2}$ + $\beta_{5}$$x_{1}$$x_{4}$ + $\beta_{6}$$x_{2}$$x_{4}$ + $\beta_{7}$$x_{1}^2$ + $\beta_{8}$$x_{2}^2$ + $\beta_{9}$$x_{4}^2$
+
+(b) Fit the model. Since with an assumed $\alpha$ = 0.05 is larger than the p-value of 2.2e-16, the model is statistically useful as a predictor of rest frame width (y)
+
+```{r}
+y = QUASAR$RFEWIDTH
+x1 = QUASAR$REDSHIFT
+x2 = QUASAR$LINEFLUX
+x4 = QUASAR$AB1450
+
+qu.model <- lm(y ~ x1 + x2 + x4 + I(x1*x2) + I(x1*x4) + I(x2*x4) + I(x1^2) + I(x2^2) + I(x4^2))
+
+summary(qu.model)
+```
+
+(c) The Pr(<|t|) value for x2 and x4 are significantly lower than the assumed $\alpha$ = 0.05, which means that LINEFLUX and AB1450 are statistically useful predictors for rest frame width (y)
+
+\pagebreak
+page 287 #5.22
+
+Potential for extreme round-off errors in the parameter estimates for the model: because the independent variable, Temperature (x) has a narrow range. [123 to 165]
+
+Propose and fit another alternative model: The correlation value of the independent variable is highly correlated (r = 0.999273) with the original model. Once the x variable has been coded and the model re-ran the new value is much lower (r = -0.2389866), implying the round-off error problem has been fixed. 
+
+```{r}
+# get the correlation value r to see that the values are highly correlated
+cor(TEMP.x, temp_sq)
+# function to code data from x to u (z score)
+coded <- function(x){
+  (x - mean(WAFER$TEMP)) / sd(WAFER$TEMP)
+}
+# lapply the function over the Temperature variable
+coded.val = lapply(WAFER$TEMP, coded)
+# add the new set of data to the WAFER data set and change into a numeric
+WAFER$TEMPCODED <- as.numeric(coded.val)
+# second order of the new coded temperature varaible
+WAFER$TEMPCODEDsq <- (WAFER$TEMPCODED)^2
+# new fited model
+wf_model_coded = lm(FAILTIME ~ TEMPCODED + TEMPCODEDsq, data = WAFER)
+summary(wf_model_coded)
+# get the correlation value r to see if the rounding error has been decreased
+cor(WAFER$TEMPCODED, WAFER$TEMPCODEDsq)
+```
+
+\pagebreak
+page 302 #5.27
+
+(a) Interaction model relating wine quality to grape-picking method and soil type:
+
+E(y) = $\beta_{0}$ + $\beta_{1}$$x_{1}$ + $\beta_{2}$$x_{2}$ + $\beta_{3}$$x_{3}$ + $\beta_{4}$$x_{1}$$x_{2}$ + $\beta_{5}$$x_{1}$$x_{3}$ 
+
+Main effects model:  
+E(y) = $\beta_{0}$ + $\beta_{1}$$x_{1}$ + $\beta_{2}$$x_{2}$ + $\beta_{3}$$x_{3}$
+
+where: 
+
+$x_{1}$ = {1 if soil type gravel and 0 if not
+       
+$x_{2}$ = {1 if soil type clay and 0 if not
+       
+$x_{3}$ = {1 if manual was used and 0 if automated
+
+(b) The $\beta_{0}$ in the model is the mean value of y at the base levels of "Automated" and "sand"
+
+(c) For "manual" and "clay":  
+      
+$x_{1}$ = 0     $x_{2}$ = 1     $x_{3}$ = 1
+      
+E(y) = $\beta_{0}$ + $\beta_{1}$ (0) + $\beta_{2}$ (1) + $\beta_{3}$ (1)
+
+E(y) = $\beta_{0}$ + $\beta_{2}$ + $\beta_{3}$
+
+(d) The difference between the E(y), mean wine quality is $\beta_{3}$ for the following conditions: 
+
+"manual" and "sand": $x_{1}$ = 0     $x_{2}$ = 0      $x_{3}$ = 1 
+
+E(y) = $\beta_{0}$ + $\beta_{3}$
+
+**and** 
+
+"automated" and "sand": $x_{1}$ = 0     $x_{2}$ = 0      $x_{3}$ = 0
+
+E(y) = $\beta_{0}$
+
+\pagebreak
+page 303 #5.30
+
+The flaw in the model is that x = 0 for lecturer would equal the same as the $\beta_{0}$ since the $\beta_{1}$ (0) would drop out of the model. An alternative curvilinear model with a squared term could suffice, since there would be an eventual plateau in salary from the increase in professor rank. The second order model would result in the administration's objective.
+
+\pagebreak
+page 320 #5.42
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/LASERS.Rdata")
+LASERS
+```
+
+(a) The equation for the coded variable, u to waveguide, x:
+
+(x - mean(LASERS $ WAVEGUIDE)) / sd(LASERS $ WAVEGUIDE)
+
+
+(b) 
+
+```{r}
+# function to code data from x to u (z score)
+coded.laser <- function(x){
+  (x - mean(LASERS$WAVEGUIDE)) / sd(LASERS$WAVEGUIDE)
+}
+# lapply the function over the waveguide variable
+coded.laser.sharks = lapply(LASERS$WAVEGUIDE, coded.laser)
+print(coded.laser.sharks)
+```
+
+(c) Coefficient of correlation between x and $x^2$: r = 0.9839865
+```{r}
+LASERS$WAVEGUIDESQ = (LASERS$WAVEGUIDE)^2
+cor(LASERS$WAVEGUIDE, LASERS$WAVEGUIDESQ)
+```
+
+(d) Coefficient of correlation between u and $u^2$: r = 0.4030942
+```{r}
+LASERS$waveguide.coded = as.numeric(coded.laser.sharks)
+LASERS$waveguide.coded.sq = (LASERS$waveguide.coded)^2
+cor(LASERS$WAVEGUIDE, LASERS$waveguide.coded.sq)
+```
+
+The two values are different in that WAVEGUIDE variable was highly correlated as it was a narrow range.
+
+(d) Model fitted with u and $u^2$:
+```{r}
+solar.model <- lm(CURRENT ~ waveguide.coded + waveguide.coded.sq, data = LASERS)
+summary(solar.model)
+```
+
+The p-value is lower than the $\alpha$ = 0.05 which means that this model is a statistically useful for determining Threshold Current.
+
+
+\pagebreak
+page 321 #5.44
+
+(a) Interaction model
+
+E(y) = $\beta_{0}$ + $\beta_{1}$$x_{1}$ + $\beta_{2}$$x_{2}$ + $\beta_{3}$$x_{3}$
++ $\beta_{4}$$x_{4}$ + $\beta_{5}$$x_{5}$ + $\beta_{6}$$x_{1}$$x_{2}$ + $\beta_{7}$$x_{1}$$x_{2}$ + $\beta_{7}$$x_{1}$$x_{3}$ + $\beta_{8}$$x_{1}$$x_{4}$ + 
+$\beta_{9}$$x_{1}$$x_{5}$ + $\beta_{10}$$x_{2}$$x_{3}$ + $\beta_{11}$$x_{2}$$x_{4}$ + $\beta_{12}$$x_{2}$$x_{5}$ + $\beta_{13}$$x_{2}$$x_{4}$ + $\beta_{14}$$x_{3}$$x_{4}$ + $\beta_{14}$$x_{3}$$x_{5}$ + $\beta_{15}$$x_{4}$$x_{5}$
+
+(b) $\beta_{1}$ is the college level Business Administration
+
+(c) $\beta_{2}$ is the college level Engineering
+
+(d) $\beta_{3}$ is the college level Liberal Arts & Sciences
+
+(e) $\beta_{4}$ is the college level Journalism
+
+(f) $\beta_{5}$ is the Gender
+
+(g) The inteaction terms test against each college configuration and the gender to determine the mean starting salary. To test this more specifically you could drop all the beta-term that do not include the $x_{5}$ then there would a simplified model testing the gender against each college level (ie)
+
+E(y) = E(y) = $\beta_{0}$ + $\beta_{1}$$x_{1}$ + $\beta_{2}$$x_{2}$ + $\beta_{3}$$x_{3}$
++ $\beta_{4}$$x_{4}$ + $\beta_{5}$$x_{5}$ + $\beta_{9}$$x_{1}$$x_{5}$ + $\beta_{12}$$x_{2}$$x_{5}$ + $\beta_{14}$$x_{3}$$x_{5}$ + $\beta_{15}$$x_{4}$$x_{5}$
+
+\pagebreak
+page 323 #5.51 (include graphs of interaction terms)
+
+```{r}
+load("~/Desktop/depaul/CSC423/rdata/R/Exercises&Examples/SYNFUELS.Rdata")
+head(SYNFUELS)
+```
+
+(a) Test if the brake power and fuel interact with $\alpha$ = 0.01. Since the p-value is lower than the $\alpha$  with an F-statistic of 25.65 so that concludes that brake power and fuel type contribute to the prediction of Burn Rate (y).
+
+```{r}
+power = SYNFUELS$BrakePow # x1
+x2 =  SYNFUELS$X1 # x2
+x3 = SYNFUELS$X2 # x3
+burn = SYNFUELS$BurnRate # y
+
+diesel <- lm(burn ~ power + x2 + x3 + I(power*x2) + I(power*x3))
+summary(diesel)
+```
+
+(b) Interaction graphs
+
+```{r}
+agg = aggregate(BurnRate ~ BrakePow + X1 + X2, data = SYNFUELS,  mean)
+agg
+interaction.plot(agg$BrakePow, agg$X1, response = agg$BurnRate, main="Interaction Plot",xlab="Brake Power", ylab="Mean of Burn Rate", col = "darkgreen") 
+
+interaction.plot(agg$BrakePow, agg$X2, response = agg$BurnRate, main="Interaction Plot",xlab="Brake Power", ylab="Mean of Burn Rate", col = "blue") 
+
+```
+
+
+

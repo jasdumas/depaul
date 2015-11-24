@@ -9,7 +9,7 @@ can make reasonable assumptions regarding the attribute domains.
 
 DROP TABLE Authors;
 CREATE TABLE Authors(
- Author_ID NUMBER(12),
+ Author_ID NUMBER(12) NOT NULL,
  Author_Lastname VARCHAR(20),
  Author_Firstname VARCHAR(20),
  Author_birthday DATE,  -- '09-SEP-1947' formatted like this
@@ -20,7 +20,7 @@ CREATE TABLE Authors(
 
 DROP TABLE Publisher;
 CREATE TABLE Publisher(
-  Publisher_ID NUMBER(12),
+  Publisher_ID NUMBER(12) NOT NULL,
   Publisher_Name VARCHAR(30),
   Publisher_address VARCHAR(30),
 
@@ -30,7 +30,7 @@ CREATE TABLE Publisher(
 
 DROP TABLE Book;
 CREATE TABLE Book(
-  ISBN VARCHAR(8), -- it has a dash in the number
+  ISBN VARCHAR(8) NOT NULL, -- it has a dash in the number
   title VARCHAR(45),
   Publisher_Name NUMBER(12), -- also a FK
 

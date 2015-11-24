@@ -1,0 +1,58 @@
+---
+title: "Beer!"
+author: "Jasmine Dumas"
+date: "October 28, 2015"
+output: word_document
+---
+1. **Data source**:
+```{r}
+beer = read.table("http://www.craftbeeranalytics.com/uploads/3/3/8/9/3389428/ratebeer_beerjobber.txt", header=TRUE, sep="")
+head(beer)
+colnames(beer) # we'd be predicting column score.overall using abv, ratings, & score.by.style
+```
+
+2. **Data Clean**:
+```{r}
+beer <- na.omit(beer) 
+```
+
+3. **Research Question**: What contributes to beer rating scores overall, abv, style, brewer?   
+4. **Dependent Variable**: score.overall   
+5. **Independent Variable**: score.by.style, name, brewer, style, abv, ratings    
+6. **Quantitative vs. Qualitative**: The quantitative variables are score.overall, abv, ratings,score.by.style. The qualitative variable is name and brewer.  
+7. **Correlation and Scatter plots**: 
+```{r}
+# no multicollinearity between variables - want to be low!
+cor(beer$abv, beer$ratings)
+cor(beer$abv, beer$score.by.style)
+cor(beer$ratings, beer$score.by.style)
+
+# want correlation between response and covariates - want to be high!
+cor(beer$score.overall, beer$abv)
+cor(beer$score.overall, beer$ratings)
+cor(beer$score.overall, beer$score.by.style)
+
+# what do these variables all look like against the response y variable
+library(ggplot2)
+ggplot(beer, aes(y = score.overall, x = abv)) + geom_point() # log?
+ggplot(beer, aes(y = score.overall, x = ratings)) + geom_point() # log?
+ggplot(beer, aes(y = score.overall, x = score.by.style)) + geom_point() # weird-linear?
+# these graphs look weird maybe try inverse or logrithm scale and re-graph?
+```
+
+8. **Building the model**:
+```{r}
+beer.model1 = lm(score.overall ~ abv + ratings + score.by.style + brewer, data=beer) # low F-statistic
+summary(beer.model1)
+# re-run model
+beer.model2 = lm(score.overall ~ abv + ratings + score.by.style, data=beer) # better significant results
+summary(beer.model2)
+# another run with style as a dummy variable
+beer.model3 = lm(score.overall ~ abv + ratings + score.by.style + style, data=beer)
+summary(beer.model3)
+# stepwise regression for the final beer.model
+full.beer = step(beer.model3, direction="both")
+```
+
+
+

@@ -1,0 +1,7 @@
+ID, Name, Standing
+'12345', 'Paul K', 'Grad'
+'12346', 'Dave M', 'UnderGrad'
+'23456', 'Larry P', 'Grad'
+'34567', 'Ana B', 'Ugrad'
+'45678', 'Mary Y', 'Grad'
+'56789', 'Pat B', 'Ugrad'
