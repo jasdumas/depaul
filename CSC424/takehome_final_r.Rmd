@@ -1,0 +1,131 @@
+---
+title: "CSC424 Take-home final"
+author: "Jasmine Dumas"
+date: "March 14, 2016"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+CSC 324/424 Winter 2016 Take-home Final Exam Due Tue/Wed March 15/16, 2016 @ 10:00pm in D2L Dropbox 
+
+The purpose of this final exam is to test your ability to apply the techniques of this course without specific prompting to run a particular technique with a particular data set. This is a course where it is especially true that, “You get out of it what you put in,” because you can do well on the assignments and other tests without digging in and working with the techniques we have discussed. However, digging in and getting practice is the only way to fully understand these. I encourage you to enjoy this assignment and look at some interesting data, but I also understand many people will have other obligations and I will not judge you for doing something straightforward. 
+
+Submission: turn in two documents. First (1) written responses to the questions below, labeled by question number and (2) your code and/or output from your analysis. 
+
+
+Questions: 
+
+1.	Identify a multivariate data set you will use for this assignment. If you haven't already chosen and need ideas, take a look at the last lab.
+
+**YearPredictionMSD Data Set: This data is a subset of the Million Song Dataset. The Million Song Dataset is a freely-available collection of audio features and metadata for a million contemporary popular music tracks. The core of the dataset is the feature analysis and metadata for one million songs, provided by The Echo Nest. The dataset does not include any audio, only the derived features.** 
+
+(Source: <http://labrosa.ee.columbia.edu/millionsong/>)
+
+a.	Provide a link to the data set (if not possible, add the data as one of the posted files or explain why you cannot, e.g. corporate IP). 
+
+<http://archive.ics.uci.edu/ml/datasets/YearPredictionMSD#>
+
+b.	Explain the variables of the data including their meaning and type (nominal, numeric, …)
+
+**There are 90 numeric/interger variables: 12 = timbre average, 78 = timbre covariance and the first variable is the song year (target, y). Timbre is the character or quality of a musical sound or voice as distinct from its pitch and intensity. The first value is the year (target), ranging from 1922 to 2011. Features extracted from the 'timbre' features from The Echo Nest API. We take the average and covariance over all 'segments', each segment being described by a 12-dimensional timbre vector.** 
+```{r, loadMSD}
+#MSD <- read.table("/Users/jasminedumas/desktop/depaul/CSC424/YearPredictionMSD.txt", sep = ",")
+#save(MSD, file = "MSD.RData")
+load("/Users/jasminedumas/desktop/R-directory/MSD.RData")
+```
+
+c.	How many samples are there? 
+
+**There are 515,345 samples in the dataset**
+```{r, dim}
+dim(MSD)
+```
+
+d.	Are there missing values? 
+
+**There are no missing values**
+```{r, missingvals}
+which(is.na(MSD)) # returning a zero indicates no missing values
+```
+
+2.	Provide a question you have about this data that can be answered using a technique we've studied.
+
+**Can audio features predict the song release year?**
+
+3.	Explain what analysis technique from class you will use to answer your question, including why and how. I'm happy to see visualization in the results, but this is limited to the core techniques we learned plus SVM if you need it. 
+
+**I'm choosing to intially perform a Principal Component Analysis (PCA) on the data to reduce the dimentionality then implore a multiple linear regression to determine if timbre attributes are a linear predictor of song year.**
+
+4.	Test that the proposed technique can be used with the chosen data.
+
+**There a four assumptions to satisfy before performing the dimension reduction technique: multiple continuous variables, a linear relationship exists between all the variables, enough samples, enough variables for reduction**
+
+a.	Run the appropriate tests we discussed in class to determine if the technique is appropriate. Examples include testing for adequate sampling for PCA and Box's M Test for LDA.
+
+**Yes, there are multiple continuous variables.**
+
+**Yes, the p-value is less than the significance criteria of 0.05 indicated that we reject the null hypothesis and there is no difference between the varaibles and accept the alternative hypothesis that there is a statistically significant difference between the variables.**
+```{r, fit}
+# do we have a linear relationship between the variables?
+initial.model = lm(V1~., data=MSD)
+summary(initial.model)
+```
+
+**Yes, the overall Measure of Sampling Adequacy (MSA) of factor analytic data matrices is above the threshold of 0.5. This (Barlett's Test in SPSS) KMO function is just a function of the squared elements of the ‘image' matrix compared to the squares of the original correlations. The overall MSA as well as estimates for each item are found and the ideal value is above 0.5. The index is known as the Kaiser-Meyer-Olkin (KMO) index.**
+
+(Source: <http://www.personality-project.org/r/html/KMO.html>)
+```{r, KMO}
+# do we have enough samples?
+nrow(MSD)
+library(psych)
+KMO(MSD)
+```
+
+**Yes, we have enough variables for PCA as the number of sample should be ~5 times the number of variables**
+```{r, numvars}
+# do we have enough variables?
+ncol(MSD)
+nrow(MSD) >= 5*ncol(MSD)
+```
+
+b.	Report the results of your test. If the data fail the tests, you must switch data or explain why you are going forward anyway. 
+
+**Yes, the tests about the assumptions passed and I'm moving forward with the PCA technique.**
+
+5.	Apply the chosen technique to the chosen data.
+
+```{r, pca}
+fit = princomp(MSD[, -1], cor=F, n.obs=.) # using the covaraince matrix
+summary(fit) # print variance accounted for 
+head(loadings(fit)) # pc loadings 
+head(fit$scores) # the principal components
+plot(fit,type="lines", main="Scree Plot for PCA", col = "dodgerblue") # scree plot 
+```
+
+**The PCA technique revealed that the atleast 90% of the total variance of the data can be explained using 13 principal components (the SPSS method selects 11 principal components which explain ~88% of the total varaince in the dataset). But for real world simplicity the first two components explain abut 61% of the variance. These correlation values between the latent variables and real values are called loadings. The scree plot indicates the "knee" is at Comp.2** 
+
+Note: the `head()` function was used to show the first 6 loadings and score output and the prevent print 500 + pages since the scope of the data set (large amount of observations) is very large.
+
+6.	Validate the model constructed by the chosen technique by testing that it is significant and has a reasonable model fit. Use the criteria appropriate for the model you've chosen. 
+
+**I'm validating the model by re-incorporating the PC scores into a multiple linear model and using the usual p-value, $R_{2}$ value to evalute the result and fit.**
+
+```{r, pcareg}
+newdat <-fit$scores[, 1:13]  # select the first 13 principl components
+newMSD = as.data.frame(newdat) # create a new data frame
+newMSD$year = MSD$V1 # add target to new data frame
+pca.model = lm(year ~., data=newMSD) # new linear model with principal component scores
+summary(pca.model) # includes p-value and R values
+```
+
+7.	Finally, report on the results and answer your proposed question if possible.
+
+**Based on the linear model criterion, I'm not comfortable in using this model to predict song release year from timbre characteristics. The p-value for the model was very low and the p-value for each principal component was very low which is acceptable but its very suspicious that the Adjusted R-squared value was very low at 0.04253. The original question could be answered by syaying the song charactersitics can predict song release year but it would have to be attached with a accuracy level (low).**
+
+**The reduction of covariates from 90 to 13 is definetly our goal to simplify complexity and develop a parsimonius model that is in-expensive to compute and reduces noise obviously present in the majority of the covariates. The coefficients in the new linear model don't correspond back to the original variables which is a disadvantage of using Principal Component Analysis but for this specific dataset the variables were not specificfied aside from all being extracted timbre characteristics averages and covarainces.**
+
+**I used a linear model function but this could improved on my using a generalized linear model (GLM) to specify error distribution and the link function between the response and covariates.**
+

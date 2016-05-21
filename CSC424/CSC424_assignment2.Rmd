@@ -1,0 +1,226 @@
+---
+title: "CSC424 Assignment 2"
+author: "Jasmine Dumas"
+date: "February 4, 2016"
+output: word_document
+---
+
+### Problem #1 (Regression analysis - 20 points) The Housing dataset (housing.data) contains housing values in the suburbs of Boston. The detailed explanation concerning the input and output variables can be fetched from the UCI machine learning repository <http://archive.ics.uci.edu/ml/datasets/Housing>:
+
+```{r}
+# change working directory
+setwd("/Users/jasminedumas/Desktop/depaul/CSC424")
+# get data
+library(readr)
+boston_housing <- read_table("housing.data", col_names = FALSE)
+# add column names
+colnames(boston_housing) <- c("CRIM", "ZN", "INDUS", "CHAS", "NOX", "RM", "AGE", 
+                              "DIS", "RAD", "TAX", "PTRATIO", "B", "LSTAT", "MEDV")
+```
+
+a. Fit a linear regression model and report goodness of fit, the utility of the model, the estimated coefficients, their standard errors, and statistical significance. Use the default method for running regression analysis in SPSS and interpret your results.
+```{r}
+# linear model
+fit <- lm(MEDV ~., data = boston_housing) # the dot means all variables
+summary(fit)
+```
+
+_The overall p-value is low (< 0.05), High F-statistic, Moderately high R-squared and adjusted R-squared value, many of the estimate coefficients are significant to the model. The model could be improved by elimiating the un-significant variables._
+
+b. Perform a feature selection on this data by using the forward selection method of the regression analysis. Analyze the output in terms of the order in which the variables are included in the regression model.
+```{r}
+min.model = lm(MEDV ~ 1, data=boston_housing)          # aka intercept only model
+biggest = formula(lm(MEDV ~ ., data=boston_housing))   
+model = step(min.model, direction='forward', scope=biggest)
+summary(model)
+```
+
+With the forward selection, the output of terms are only included if they decrease the AIC score therefore when starting with `r MEDV ~ 1` at the intercept the covariate with the lowest AIC is added first into the model and the process continues until the <none> row is at the top (lowest AIC compared to the other variables). The last step confirms that the inclusion of anymore variables beyond CHAS would not prove to be significant to be included in the model. In comparing the full model fit with the forward selection, the full model deemed the same significant variables that were included in the forward selection and also the estimated coefficients were similar in value for both the full model and forward model.
+
+\pagebreak
+
+### Problem #2 (Canonical Correlation Analysis – 20 points): Water, soil, and mosquito fish samples were collected at n = 165 sites/stations in the marshes of southern Florida. 
+Answer the following questions regarding the canonical correlations.
+
+Additional Source: SPSS_MANOVA_output.doc
+
+```{r}
+# get the data
+library(readr)
+# removed a row with label units and transformed to csv file format
+marsh <- read_csv("data_marsh_cleaned_hw2.csv")
+# create two groups for water & soil variables
+water <- marsh[, 2:6]
+soil <- marsh[, 7:9]
+# CCA summary
+library(psych)
+a = set.cor(x=2:6, y=7:9, data = marsh)
+print(a) # print produces the t and p-values
+```
+
+a. Test the null hypothesis that the canonical correlations are all equal to zero. Give your test statistic, d.f., and p-value.  _The hypothesis test of at least one canonical correlation being not equal to zero is equivalent to testing whether the first canonical correlation is significantly different from zero._ 
+```{r}
+# the test statistic (Wilks)
+(1 - a$cancor2[1]) * (1 - a$cancor2[2]) * (1 - a$cancor2[3])
+# df (n - 1) where n = 165
+a$df[1] + a$df[2]
+print("p-value from SPSS, Sig. F = 0.000")
+# ct = corr.test(water, soil)
+# ct$p
+```
+
+b. Test the null hypothesis that the second and third canonical correlations equal
+zero. Give your test statistic, d.f., and p-value. _This question follows the first in assessing wether the 2nd or 3rd canonical correlations are significantly different from zero._
+```{r}
+# the test statistic 
+(1 - a$cancor2[2]) * (1 - a$cancor2[3])
+# df (n - 1) where n = 165
+a$df[1] + a$df[2]
+print("p-value from SPSS, Sig. F = 0.000")
+```
+
+c. Test the null hypothesis that the third canonical correlation equals zero. Give
+your test statistic, d.f., and p-value. _A very similar analysis as above_
+```{r}
+# the test statistic 
+(1 - a$cancor2[3])
+# df (n - 1) where n = 165
+a$df[1] + a$df[2]
+print("p-value from SPSS, Sig. F = 0.000")
+```
+
+d. Present the three canonical correlations, together with their standard errors.
+(Report the standard errors only if you are using SAS; SPSS will not output the
+standard errors)
+```{r, message=F, warning=F}
+library(CCA)
+library(ggplot2)
+library(GGally)
+ggpairs(water)
+ggpairs(soil)
+# correlations between the two groups of variables
+matcor(water, soil)
+# display the canonical correlations
+cc1 <- cc(water, soil)
+cc1$cor
+# raw canonical coefficients
+cc1[3:4]
+```
+e. What can you conclude from the above analyses? _The analysis aboves shows the canonical correlation coefficients test for the existence of overall relationships between two sets of variables. The coeffcients are low and which means that the water variables and the soil variables are not positively correlated with each other.The R-squared values are very low_
+
+Answer the following questions regarding the canonical variates.
+
+a. Give the formulae for the significant canonical variates for the soil and water
+variables. 
+
+_The linear combination of the sets of variables (predictor and DV). significant canonical variates will have a low p-value (< 0.05)._
+
+$$H0:  \rho^∗_1 = \rho^∗_2 = ⋯= \rho^∗_p=0$$
+
+b. Give the correlations between the significant canonical variates for soils and the
+soil variables, and the correlations between the significant canonical variates for
+water and the water variables.
+
+```{r}
+# compute canonical loadings
+cc2 <- comput(water, soil, cc1)
+
+# display canonical loadings/latent variables
+cc2[3:6]
+# tests of canonical dimensions
+ev <- (1 - cc1$cor^2)
+
+n <- dim(water)[1]
+p <- length(water)
+q <- length(soil)
+k <- min(p, q)
+m <- n - 3/2 - (p + q)/2
+
+w <- rev(cumprod(rev(ev)))
+
+# initialize
+d1 <- d2 <- f <- vector("numeric", k)
+
+for (i in 1:k) {
+    s <- sqrt((p^2 * q^2 - 4)/(p^2 + q^2 - 5))
+    si <- 1/s
+    d1[i] <- p * q
+    d2[i] <- m * s - p * q/2 + 1
+    r <- (1 - w[i]^si)/w[i]^si
+    f[i] <- r * d2[i]/d1[i]
+    p <- p - 1
+    q <- q - 1
+}
+
+pv <- pf(f, d1, d2, lower.tail = FALSE)
+(dmat <- cbind(WilksL = w, F = f, df1 = d1, df2 = d2, p = pv))
+```
+
+c. What can you conclude from the above analyses? 
+
+_The analysis above that the soil variable group is more related to each other than to the water variable group and the same logic for the water being correlated with the water variables but has very little correlation to the soil group. The canonical variates are interesting enough to use to represent the relationship._
+
+\pagebreak
+
+# Problem 3 (Principal Component Analysis - 20 points): The data given in the file ‘problem3.txt’2 is the percentage of people employed in different industries in European countries during 1979. Techniques such as Principal Component Analysis (PCA) can be used to examine which countries have similar employment patterns. There are 26 countries in the file and 10 variables as follows:
+
+```{r}
+# get the data
+europe <- read_tsv("problem3.txt")
+# source: http://www.statmethods.net/advstats/factor.html
+# from the correlation matrix 
+fit2 <- princomp(europe[,-1], cor=F, n.obs=.) # -1 to get a numeric matrix, cor=F is a covariance matrix
+summary(fit2) # print variance accounted for 
+loadings(fit2) # pc loadings 
+plot(fit2,type="lines", main="scree plot") # scree plot 
+fit2$scores # the principal components
+
+```
+
+Perform a principal component analysis using the covariance matrix:
+
+a. How many principal components are required to explain 90% of the total variation for this data?
+
+_At the 2nd principal component, the cumulative proportion of variance is at 0.9332663 (~93%) meeting the explained threshold of 90% of the total variation for this data._
+
+b. For the number of components in part a, give the formula for each component and a brief interpretation. 
+
+_The greatest variance by some projection of the data comes to lie on the first principal component - Agr, the second greatest variance on the second coordinate - Min. The agriculture & mining industry is highly specialized and it appears from this dataset that skill-set is limited to certain countries and not widespread in others. Those industries also heavily depend on environmental factors (warm countries farm more and mining is very costly to the environment so government regulation has decreased this industry.) and import/export trends._
+
+$$PC_1 = \b_11 X_1 + \b_21 X_2 + ... \b_k1 X_k  where X = Agriculture $$
+
+$$PC_2 = \b_12 X_1 + \b_22 X_2 + ... \b_k2 X_k  where X = Mining $$
+
+c. What countries have the highest and lowest values for each principal component (only include the number of components specified in part a). For each of those countries, give the principal component scores (again only for the number of components specified in part a).
+
+_The countries with the highest value for principal component 1 are: Turkey, Yugoslavia, & Greece. The lowest values are: United Kingdom, Belgium, E. Germany. The countries with the highest value for principal component 2 are: E. Germany, Switzerland, & Czechoslovakia. The lowest are Denmark, Netherlands, Norway._ 
+
+```{r}
+# this just identifies the top and bottom PC values and can be match to the row number pertaining to that country
+d = fit2$scores 
+d[order(d[, 1],decreasing=T)[1:3], 1] # top 3 countries for PC1
+d[order(d[, 1],decreasing=F)[1:3], 1] # lowest 3 PC countires for PC1
+d[order(d[, 2],decreasing=T)[1:3], 2] # top 3 countries for PC2
+d[order(d[, 2],decreasing=F)[1:3], 2] # lowest 3 PC countires for PC2
+```
+
+d. Include and interpret the scatter plot of the data using the first two principal components. 
+
+_The biplot uses points to represent the scores of the observations on the principal components, and it uses vectors to represent the coefficients of the variables on the principal components. In this example, the points represent Countries, and the vectors represents employment industries. The countries that a close to together in value have a similar employment patterns. A vector arrow points in the direction which is most like the variable represented by the vector. This is the direction which has the highest squared multiple correlation with the principal components. The length of the vector is proportional to the squared multiple correlation between the fitted values for the variable and the variable itself. Vectors that point in the same direction correspond to variables that have similar response profiles, and can be interpreted as having similar meaning in the context set by the data. Source:_  <http://forrest.psych.unc.edu/research/vista-frames/help/lecturenotes/lecture13/biplot.html>
+
+```{r}
+biplot(fit2, xlabs = europe[,1]) # biplot
+```
+
+
+\pagebreak
+
+# Problem 4 (overview – 5 points): Briefly describe the similarities and differences between:
+
+a. Linear regression and canonical correlation
+
+_Linear regression is an approach for modeling the relationship between a dependent variable y and one or more explanatory variables (or independent variables), X. CCA is a method to find relationships between two sets of variables (independent and dependent). CCA is not as common as Linear Regression. CCA focueses on how the best linear predictors relate ot the best DVs. In Linear regression the goal is also to identify covariates that the effectively model (or account for the most error) for the target variable._ 
+
+b. Canonical correlation and principal component analysis
+
+_PCA is a way of identifying patterns in data, and expressing the data in such a way as to highlight their similarities and differences. PCA finds weights to maximize variance, and finds an ideal projection (orthogonal transformation) to convert a set of observations of possibly correlated variables into a set of values linearly correlated variables. PCA removes redundancy and multicolinearity from one set of variables which differs from CCA which utilizes two sets of variables. PCA and CCA both seek to optimize the linear combinations therefore reducing the amount of variables._ 

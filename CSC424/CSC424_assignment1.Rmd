@@ -1,0 +1,147 @@
+---
+title: 'CSC424: Assignment 1'
+author: "Jasmine Dumas"
+date: "January 18, 2016"
+output: word_document
+---
+
+### Problem 1 (5 points – data exploration, visualization, and interpretation)         
+The Olympics are a great event to watch both in the Summer & Winter and it brings about a lot of national pride. While the games are being played many different facts and statistics emerge about athletes and their rigorous Olympic trial competitiveness, preparation, training, equipment, and sponsorship provided generously by their host country and athletic companies. With the 2012 Summer Olympic data I'm hoping to provide insight by trying to answer the following questions:            
+1. *Do wealthier countries win more medals?*: I would hypothesis that money plays a very significant component in winning medals and there should be a positive trend between those two variables.       
+2. *Does having a large talent pool of athelets to choose from ensure that a country will win alot of medals?*: Statistically speaking I would hypothesis that a country with a large population would in then have a large pool athletes and be able to more selectively choose the best of the best and in that would equate to more medals.         
+
+
+```{r}
+# read in the csv file
+setwd("/Users/jasminedumas/Desktop/depaul/CSC424")
+library(readr)
+olympics <- read_csv("olympics.csv")
+colnames(olympics) <- c("ISOcountrycode", "Countryname", "GDP_2011", "population_2010", "Female_count", "Male_count", "Gold_medals", "Silver_medals", "Bronze_medals") # column name should not start with a numeric value
+```
+
+```{r}
+# Question 1
+# plot the relationship between 2010 GDP and total medals
+library(dplyr)
+olympics <- mutate(olympics, total_medals = Gold_medals + Silver_medals + Bronze_medals)
+library(ggplot2)
+source('~/Desktop/R-directory/lm_eqn.R') # adds the lm equation and R^2 value to plot
+
+gdp_total <- ggplot(olympics, aes(x=GDP_2011, y=total_medals, label = Countryname)) +
+                  geom_point(color = "dodgerblue4") +
+                  ggtitle("2012 London Summer Olympics - 2011 GDP v. Total Medals") +
+                  geom_text(hjust = -0.1, nudge_x = 0.01, 
+                            check_overlap = TRUE) +
+                  annotate("text", x = 1e+13, y = 50, label = lm_eqn(df=olympics, y=olympics$total_medals, x=olympics$GDP_2011), parse =TRUE)
+gdp_total
+```
+
+This scatter plot demonstrates the positive linear relationship of GDP to total amount of medals won by a country in the 2012 Olympics. Its quite clear that the more wealthier a country is the more medals they have won. There are some particular examples that deviate from this trend and that would for example Russia who has a much lower GDP (Gross Domestic Product) but significantly more overall medals comparative to Japan.
+
+```{r}
+# Question 1 in detail
+# plot the relationship between 2010 GDP and each of the individauls medals
+gold <- ggplot(olympics, aes(x=GDP_2011, y=Gold_medals, label = Countryname)) +
+                  geom_point(color = "gold") +
+                  ggtitle("2011 GDP v. Gold Medals") +
+                  geom_text(hjust = -0.1, nudge_x = 0.01, check_overlap = TRUE) +
+                  annotate("text", x = 1e+13, y = 30, label = lm_eqn(df=olympics, y=olympics$Gold_medals, x=olympics$GDP_2011), parse =TRUE)
+gold
+silver <- ggplot(olympics, aes(x=GDP_2011, y=Silver_medals, label = Countryname)) +
+                  geom_point(color = "black") +
+                  ggtitle("2011 GDP v. Silver Medals") +
+                  geom_text(hjust = -0.1, nudge_x = 0.01, check_overlap = TRUE) +
+                  annotate("text", x = 1e+13, y = 30, label = lm_eqn(df=olympics, y=olympics$Silver_medals, x=olympics$GDP_2011), parse =TRUE)
+silver
+bronze <- ggplot(olympics, aes(x=GDP_2011, y=Bronze_medals, label = Countryname)) +
+                  geom_point(color = "brown") +
+                  ggtitle("2011 GDP v. Bronze Medals") +
+                  geom_text(hjust = -0.1, nudge_x = 0.01, check_overlap = TRUE) +
+                  annotate("text", x = 1e+13, y = 30, label = lm_eqn(df=olympics, y=olympics$Bronze_medals, x=olympics$GDP_2011), parse =TRUE)
+bronze
+```
+
+These additional scatter plot goes to underscore the effect of GDP on the individual medal counts. For example Russia with a much lower GDP than the US earned more bronze medals in the games. Not all medals are obviously equal but with milliseconds and minimal points between first, second, and third place winning a medal in general is still seen as success for many countries.
+
+```{r}
+# Question 2
+# plot the relationship between 2010 population and the total medals
+population <- ggplot(olympics, aes(x=population_2010, y=total_medals, label = Countryname)) +
+                  geom_point(color = "green") +
+                  ggtitle("2012 London Summer Olympics - 2010 Population v. Total Medals") +
+                  geom_text(hjust = -0.1, nudge_x = 0.01, 
+                            check_overlap = TRUE) +
+                  annotate("text", x = 5e+08, y = 50, label = lm_eqn(df=olympics, y=olympics$total_medals, x=olympics$population_2010), parse =TRUE)
+
+population
+```
+
+This scatter plot shows a story different from my hypothesis and in fact having a populous country does not ensure that you will have many athletes in your population to choose from. For example the US has significantly lower population than India and China but has the most medals out of all of the countries.
+
+\pagebreak
+
+### Problem 2: (10 points – regression analysis):         
+(a) (2 points) Find the regression of LeafIndex on Latitude. Is latitude a useful predictor of leaf index? *Latitude is a highly significant predictor with a p-value of less tha 0.05*
+```{r}
+# read in data
+maple <- read_table("maple.txt")
+fit_lat <- lm(LeafIndex ~ Latitude, data = maple)
+summary(fit_lat)
+```
+
+(b) (2 points) Repeat part (a) for the regression of LeafIndex on JulyTemp. * JulyTemp is a highly significant predictor with a p-value of less tha 0.05*
+```{r}
+fit_july <- lm(LeafIndex ~ JulyTemp, data = maple)
+summary(fit_july)
+```
+
+(c) (6 points) Find the regression of LeafIndex on Latitude and JulyTemp. Compare the results of this analysis with your results from (a) and (b). How different are the slope coefficients in each case? What best explains the differences in their values? *This regression fit did not indicate that the predictors were very significant (high p-values) but the overall p-value was significant which is suspicious. The coefficents in each case are all different except the signs for JulyTemp are all negative which is appropriate needeing moderate temperatures for tree growth. The correlation tests indicated a 1) very high negative correlation between the predictors 2) high correlation with latitude and the response 3) high negative corerlation with JulyTemp and the response. This multicolinarity bewteen the predictors explains the different in thier values amongst the regression fits*
+```{r}
+fit <- lm(LeafIndex ~ JulyTemp + Latitude, data = maple)
+summary(fit)
+
+# correlation tests
+cor(maple$Latitude, maple$JulyTemp)
+cor(maple$Latitude, maple$LeafIndex)
+cor(maple$JulyTemp, maple$LeafIndex)
+```
+
+
+\pagebreak
+
+### Problem 3: (30 points – regression analysis)    
+(a) (5 points) Before running any regressions make a prediction as to what the sign of the coefficient of each predictor should be expected to be. * My predictions for the signs of the coefficients are negative: _pctmin, fires, thefts, & pctold_ and positive: _income_. My predictions about the signs are based on the notion that the negative coefficients are housing attributes and the positive coefficients are occupant attributes.*
+
+(5 points) Obtain the correlation matrix for the variables PCT-MINOR FIRES THEFTS PCTOLD INCOME NEWPOL. Do the simple correlations support your predictions about the signs? *By examining the newpol column all the correpsonding rows have a negative correlation sign for the housing attributes and the only positive correlation is with income. Yes, this correlation matrix supports my previous prediction about coefficient beta signs.*
+
+```{r}
+chi_home_insurance_original <- read_table("chicinsur.txt")
+# make a copy of the data to remove irelevant columns
+chi_home_insurance <- chi_home_insurance_original
+chi_home_insurance$zipcode <- NULL
+chi_home_insurance$fairpol <- NULL
+# correlation matrix
+cor(chi_home_insurance)
+```
+
+(b) Run a multiple regression of NEWPOL on the variables listed above.                  
+i. (5 points) Comment on the overall significance of the regression fit. *The overall p-value for the regression fit is significant (p-value < 0.05). The adjusted R-squared value is moderatly high meaning the model explains 77% of the error.*          
+
+ii. (5 points) Which predictors have coefficients that are significantly different from zero at the .05 level? *pctmin, fires and pctold are significant predictors.*           
+
+iii. (5 points) Do any of the predictors have signs that are different than suggested by their simple correlations? If so, explain what may be happening. If not, explain how such a thing can happen. *The theft predictor has a different (positive) sign then previously predicted as negative. This sign change could be in the correlation matrix thefts did not exhibit a strong corerlation with the response variable. The sign change could also be due to more new home insurance policies to protect thier property _from_ thefts.*              
+
+iv. (5 points) Examine a plot of residuals versus predicted values. Do you see any problems? *There are no observable patterns on the residual plot which points to the appropriateness of the model*.
+
+```{r}
+# multiple linear regression model to determine number of new home insurance policies
+chi_insur_fit <- lm(newpol ~ pctmin + fires + thefts + pctold + income, data = chi_home_insurance)
+summary(chi_insur_fit)
+# residual plot
+plot(chi_home_insurance$newpol, resid(chi_insur_fit), main= "Chicago, IL New Home Insurance Policy Residual Plot", col="dodgerblue4")
+```
+
+\pagebreak
+
+### Problem 4 (5 points –regression application):          
+Briefly describe an application for the multiple regression in a field of interest to you. Identify possible independent variables and the dependent variable for your application. If you read about the application from a research paper or news article, please provide a reference to it. *I'm really interested in craft beer (like alot of people) but I'm particularly interested in all of the data that surrounds craft beer and the rating systems for ranking beer. This is a great application of multiple regression can can consist of numerous independent variables including: beer style, abv %, composition, & price to predict the dependent response for rating score. Here are a few links of my own multiple linear regression on determing rating score:*<https://github.com/jasdumas/regression/blob/master/beer/beer.Rmd> *and a data vizualization about beer rating in craft breweries in Connecticut* <http://rpubs.com/jasdumas/Breweries-scrape>
