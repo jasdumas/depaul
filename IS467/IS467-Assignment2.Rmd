@@ -1,0 +1,133 @@
+---
+title: 'IS467: Assignment 2'
+author: "Jasmine Dumas"
+date: "January 28, 2016"
+output: word_document
+---
+
+### Problem 1 (15 points):  This problem is an example of data preprocessing needed in a data mining process. 
+
+```{r}
+# create the data frame - manually from HW
+hospital <- data.frame(x = c(23, 23, 27, 27, 39, 41, 47, 49, 50,
+                                    52, 54, 54, 56, 57, 58, 58, 60, 61), 
+                          y = c(9.5, 26.5, 7.8, 17.8, 31.4, 25.9, 
+                                            27.4, 27.2,31.2, 34.6, 42.5, 28.8, 
+                                            33.4, 30.2, 34.1, 32.9, 41.2, 35.7))
+# add column names
+colnames(hospital) <- c("age", "percent_fat")
+```
+
+a.	(3 points) Draw the box-plots for age and %fat.  Interpret the distribution of the data: The distribution for age is greater than for %fat meaning the standard deviation for age is greater at `r sd(hospital$age)` versus `r sd(hospital$percent_fat)` also the boxplot for age is larger in size and has a longer tail between the min-value and 25th percentile that the percent_fat. 
+
+```{r}
+boxplot(hospital, main = "Boxplot for Hospital Data", col=c("darkgreen", "darkblue"))
+```
+
+b.	 (3 points) Normalize the two attributes based on z-score normalization. (textbook 114-115): _The function below displays the approach of supplying each observation (or row) and substracting the mean of the entire column and dividing by the column standard deviation._
+```{r}
+# function to code data from x to u (z score)
+# original source: source('~/Desktop/R-directory/coded_x_u.R', echo=TRUE)
+coded_x_2u <- function(x){
+  (x - mean(x)) / sd(x)
+}
+
+z_age <- coded_x_2u(hospital$age)
+hospital$z_age <- z_age
+z_fat <- coded_x_2u(hospital$percent_fat)
+hospital$z_fat <- z_fat
+hospital
+```
+
+c.	 (3 points) Regardless of the original ranges of the variables, normalization techniques transform the data into new ranges that allow to compare and use variables on the same scales. What are the values ranges of the following normalization methods? Explain your answer.
+
+i.	_Min-max normalization:_ The range is [$new_min_{A}$, $new_max_{A}$] or commonly [0.0, 1.0] or [ -1.0, 1.0 ] which preserves the relationships among the original data values.
+
+ii.	_Z-score normalization:_ The range is [-infinity, infinity] since the actual minimum and maximum of attribute A are unknown, or the outliers dominate the min-max normalization.
+
+iii. _Normalization by decimal scaling:_ The range is [absolute value of the min / 1000 , absolute value of the max / 1000] which moves the decimal point of values of attribute A.
+
+d.	(3 points) Draw a scatter-plot based on the two variables and interpret the relationship between the two variables.: _There seems to be a positive linear relationship between age and percent fat variables or another phrasing of the relationship is that the older person is in age the more body fat percentage._
+```{r}
+library(ggplot2)
+# original data
+a = ggplot(hospital, aes(x = age, y = percent_fat, color = "red")) +
+          geom_point() +
+          ggtitle("Age vs Percent Fat (original values)")
+a
+```
+
+e.	(3 points) Calculate the correlation coefficient. Are these two attributes positively or negatively correlated? Compute the covariance matrix.: Yes, These attributes have a strong/high positive correlation coefficient in which the max is 1.0. The `cov()` function is calculated by first creating a matrix of means, then create a difference matrix by subtracting the matrix of means from the original data matrix, and finally create the covariance matrix by multiplying the transposed the difference matrix with a normal difference matrix and inverse of the number of obserations -1.
+```{r}
+# correlation coefficient
+cor(hospital$age, hospital$percent_fat)
+
+# the covariance matrix
+hospital$z_age <- NULL # remove z-score for covariance matrix calculation
+hospital$z_fat <- NULL
+cov(hospital)
+```
+
+\pagebreak
+
+### Problem 2 (10 points):  This problem is an example of data preprocessing needed in a data mining process.             
+Suppose a group of 12 sales price records has been sorted as follows: 
+5, 10, 11, 13, 15, 35, 50,55,72,92,204,215
+
+Partition them into bins by each of the following method, smooth the data and interpret the results:
+a.	(5 points) equal-depth (frequency) partitioning with 3 values per bin. _The partitioning is done by specifying the amount of bins and then equally dividing the list. The smoothing functions display the approach of calculating the means and medians of the previous and applying thats to each bin list._
+```{r}
+price <- c(5, 10, 11, 13, 15, 35, 50,55,72,92,204,215) # 12 values, 4 bins of 3 each
+bin_equal_depth = split(price, ceiling(seq_along(price)/3))
+bin_equal_depth
+
+## ---- Smoothing function - mean ----- ##
+bin_smooth_mean <- function(x, bins) {
+  lapply(x, function(x){ rep(mean(x), times = bins) })
+}
+## ---- Smoothing function - median ----- ##
+bin_smooth_median <- function(x, bins) {
+  lapply(x, function(x){ rep(median(x), times = bins) })
+}
+
+bin_smooth_mean(bin_equal_depth, bins = 3)
+bin_smooth_median(bin_equal_depth, bins = 3)
+```
+
+b.	(5 points) equal-width (distance) partitioning with 3 bins
+```{r}
+width = ((max(price) - min(price)) / 3)
+width # each interval/bin has a width of approx. 70
+bin_equal_width = split(x=price, cut(price, 3, labels=c("1", "2", "3")))
+bin_equal_width
+
+# Smoothing
+bin_smooth_mean(bin_equal_width, bins = 3)
+bin_smooth_median(bin_equal_width, bins = 3)
+```
+
+_These approaches to binning and smoothing allow the removal of noise (random error or variance in a measured variable) from the data. Binning methods help smooth a data value by associated it with its "neighboorhood" or the values surrounding it._ 
+
+### Problem 3 (10 points):       
+
+a.	(2 points) Figure 1 illustrates the plots for some data with respect to two variables: balance and employment status. If you have to select one of these two variables to classify the data into two classes (circle class and plus class), which one would you select? Is there any approach/criterion that you can use to support your selection? Explain your answer.:
+
+_I would use the unemployed / employed variable to classify the data back into either circle class or plus class because there seems to be a distictive grouping/cluster. I would utilize the clustering technique which partitions the objects into groups, or clusters so that objects within a cluster are "similar" (mean centroids) to one another and "disimilar" to objects in other clusters._
+
+b.	(8 points) For the data in Figure 2 with three variables and two classes: which variable you would choose to classify the data? Show all the steps of your calculations and interpret your answer. _I would use the variable 'C' since it clearly partitions the data frame into two clusters for factor "I" and "II"_
+```{r}
+df <- data.frame(x = c(1, 1, 0, 1), 
+                    y = c(1, 1, 0, 0),
+                    z = c(1, 0, 1, 0), 
+                    c = c("I", "I", "II", "II"))
+bb <- ggplot(df) +
+            geom_point(aes(x=factor(c), y=x)) + 
+            geom_point(aes(x=factor(c), y=y)) + 
+            geom_point(aes(x=factor(c), y=z)) 
+bb
+```
+
+
+
+
+

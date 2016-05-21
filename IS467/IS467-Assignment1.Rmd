@@ -1,0 +1,126 @@
+---
+title: 'IS467: Assignment 1'
+author: "Jasmine Dumas"
+date: "January 17, 2016"
+output: word_document
+---
+
+### Problem 1 (5 points): Differentiate between the following terms:  
+
+a. *classification and clustering*: Classification and clustering are both data mining functionalities under pattern discovery but classification is a method under _supervised learning_ where the labels are *known* and clustering is a method under _unsupervised learning_ where the labels are *unknown*.
+	
+b. *classification and prediction*: Classification and prediction are both data mining functionalities under _supervised learning_ but known labels are of a different type/class; classification has labels that are categorical/discrete and prediction has labels that are continuous.
+	
+c. *data warehouse and database*: A database is a collection of interrelated data and a database warehouse is a repository of information collected from multiple sources, stored under a unified schema and usually resides at a single site. The difference being that the data warehouse is never updated and contains billions of records and the database can be modified, updated and smaller. databases are also an initial step before the data warehouse (ref pg 7 in textbook).
+	
+d. *data mining and OLAP*: In data warehouses, OLAP (online analytical processing) tools provide multiple views of the data and is stored in a special format called multi-dimensional hyper-box structure but OLAP *does not learn from data* and data mining tools obtain their answers *through learning* about the different relationships between attributes of data records.
+	
+e. *machine learning and statistics*: Machine learning and statistics are both disciplines that data mining adopts but statistics is more theory-based and focused on testing hypothesis and mathematical methods where as machine learning is more heuristic and focused on improvement performance of a learning agent.
+
+### Problem 2 (5 points): Discuss whether or not each of the following activities is a data mining task. 
+
+a. *Monitoring the heart rate of a patient for abnormalities*: No, this is not a data mining task because although the data is interesting and potentially useful the extraction and collection is trivial due to the advanced technology of heart monitors that are inherently able to detect abnormalities and simply output those values for physician evaluation.
+
+b. *Computing the total sales of a company*: No, this is not a data mining task because the data for this is not hidden or challenging to extract and just a matter of aggregating the total sales of the company which can be completed by the company accountant or controller in excel using the `SUM` function.
+
+c. *Sorting a student database based on student identification numbers*: No, this is not a data mining task because this is a trivial to complete, and readily available in the database. Sorting the database simply requires a SQL statement ie `SELECT * FROM studentdb ORDER BY studentID DESC;`
+
+d. *Predicting the outcomes of tossing a (fair) pair of dice*: No, this is not a data mining task because this is not interesting, already known probability, and trivial to obtain the data. The utilization of dice, coins and cards are frequent examples in statistics and probability so the answers about the outcomes of trials can be easily found or calculated out.
+
+e. *Monitoring seismic waves for earthquake activities*: Yes, this is a data mining tasks because the data is interesting, non-trivial, implicit, previously unknown, and potentially useful. Massive seismic raw data would need pre-processing, filtering out of noise and needs interpretation by seismologist experts.
+
+### Problem 3: (15 points) Fisher's iris data (download the IRIS dataset from http://archive.ics.uci.edu/ml/datasets/Iris) consists of measurements on the sepal length, sepal width, petal length, and petal width of 150 iris specimens. There are 50 specimens from each of three species. 
+
+Use SPSS/R to answer the following questions:
+a. Visualize and interpret the relationship between the two sepal variables, sepal length and sepal width.  Provide the scatterplot that you created to visualize the data along with your interpretation. When you plot the data, you may want to use different colors/signs for representing the data points belonging to the different three class species. Do you think that a classification algorithm will be successful in classifying the data with respect to these two variables? Justify your answer.
+
+```{r}
+library(ggplot2)
+plot1 <- ggplot(iris, aes(x=Sepal.Length, y=Sepal.Width, colour=Species)) +
+                geom_point() + ggtitle("Sepal.Length v. Sepal.Width")
+plot1
+```
+
+SPSS Scatterplot for Sepal Variables:       
+![alt](/Users/jasminedumas/Desktop/depaul/IS467/HW1_sepal_scatterplot.png)
+
+There appears to be a positive linear correlation between Sepal.Length and Sepal.Width. By only relying on these two variables I don't believe that a classification algorithm will correctly classify the data seeing as the setosa species has a distinct grouping but the versicolor and virginica species is somewhat mixed.
+
+b. Repeat part a. for the petal variables. 
+```{r}
+plot2 <- ggplot(iris, aes(x=Petal.Length, y=Petal.Width, colour=Species)) +
+                geom_point() + ggtitle("Petal.Length v Petal.Width")
+plot2
+```
+
+SPSS Scatterplot for Petal Variables:       
+![alt](/Users/jasminedumas/Desktop/depaul/IS467/HW1_petal_scatterplot.png)
+
+There appears to be a positive linear correlation between Petal.Width and Petal.Length. A classification algorithm should be able to successfully classify the species based on these two variables as the grouping among the species is distinct.
+
+c. Draw the histograms of the four variables and interpret the distributions of each one of the four variables.
+
+```{r}
+source("/Users/jasminedumas/Desktop/depaul/CSC423/multiplot.R")
+plot3 <- ggplot(iris) +
+              geom_histogram(aes(x=Sepal.Length)) + ggtitle("Sepal.Length Histogram")
+
+plot4 <- ggplot(iris) +
+              geom_histogram(aes(x=Sepal.Width)) + ggtitle("Sepal.Width Histogram")
+
+plot5 <- ggplot(iris) +
+              geom_histogram(aes(x=Petal.Length)) + ggtitle("Petal.Length Histogram")
+
+plot6 <- ggplot(iris) +
+              geom_histogram(aes(x=Petal.Width)) + ggtitle("Petal.Width Histogram")
+
+multiplot(plot3, plot4, plot5, plot6, cols=2)
+
+```
+
+SPSS Histogram for the four variables:       
+![alt](/Users/jasminedumas/Desktop/depaul/IS467/HW1_sepal-length_hist.png)
+
+![alt](/Users/jasminedumas/Desktop/depaul/IS467/HW1_sepal-width_hist.png)
+
+![alt](/Users/jasminedumas/Desktop/depaul/IS467/HW1_petal-length_hist.png)
+
+![alt](/Users/jasminedumas/Desktop/depaul/IS467/HW1_petal-width_hist.png)
+
+* The histogram for the Sepal.Length Histogram appears to have a normal distribution but there seems to be distinct peaks possibly from the distribution between the different species.
+
+* The histogram for Sepal.Width appears to have a normal distribution with a clear central peak.
+
+* The histogram for Petal.Length appears to have two distinct groups each displaying a normal distribution possibly from the distribution between the different species. If not considering the different species the histogram can also be described as being skewed right as the right hand-side has a peak with a higher count/kurtosis.
+
+* The histogram for Petal.Width appears to have two distinct groups and a singular peak. The distribution appears to be skewed right.
+
+
+d. Determine if there are any outliers in the data with respect to the sepal length: _There appears to be no outliers for Sepal.Length._ 
+
+```{r}
+# Graphically depicted in a boxplot
+plot7 <- ggplot(iris, aes(x=1, y=Sepal.Length)) +
+                geom_boxplot(outlier.colour = "green")
+plot7
+# http://stackoverflow.com/a/33525389/4143444
+is_outlier <- function(x) {
+  return(x < quantile(x, 0.25) - 1.5 * IQR(x) | x > quantile(x, 0.75) + 1.5 * IQR(x))
+}
+is_outlier(iris$Sepal.Length) # no outliers detected
+```
+
+e. Repeat d. for the petal length.: _There appears to be no outliers for Petal.Length_
+
+```{r}
+# Graphically depicted in a boxplot
+plot8 <- ggplot(iris, aes(x=1, y=Petal.Length)) +
+                geom_boxplot(outlier.colour = "green")
+plot8
+# http://stackoverflow.com/a/33525389/4143444
+is_outlier <- function(x) {
+  return(x < quantile(x, 0.25) - 1.5 * IQR(x) | x > quantile(x, 0.75) + 1.5 * IQR(x))
+}
+is_outlier(iris$Petal.Length) # no outliers detected
+```
+
