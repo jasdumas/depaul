@@ -70,7 +70,44 @@ INSERT INTO Handles VALUES(3, 8, '03-Jan-2000');
 INSERT INTO Handles VALUES(3, 9, '05-Jan-2000');
 INSERT INTO Handles Values(3, 10,'04-Jan-2000');
 
+/*   ******  Simple interview practice (8-14-16) *******         */
 
+/* general selects by numeric criteria */
+select * from Handles;
+
+select * from Handles 
+where ZOOKEEPID >= 2;
+
+select * from Handles
+where ZOOKEEPID >= 2 AND ANIMALID >= 5;
+
+/* general selects by string criteria */
+select AName from animal
+where ACATEGORY = 'exotic';
+
+/* general selects by wild card string match criteria */
+select AName as Animal_Name from Animal
+where AName like 'L%';
+
+select AName as Animam_Name from Animal
+where AName like 'G%';
+
+select timetofeed, AName as Animam_Name from Animal
+where AName like '%bear%' and TIMETOFEED < 2;
+
+/* aggregates - counts */
+select count(ACategory), ACategory as cnttype from Animal
+group by ACategory;
+
+/* aggregates - range */
+select max(timetofeed), min(timetofeed) from animal;
+
+select distinct(ACategory) from animal;
+
+
+
+
+/*   ********************         */
 SELECT Animal.Aname, Handles.ZOOKEEPID
 FROM Animal
 INNER JOIN Handles
@@ -79,13 +116,23 @@ ON Animal.AID = Handles.AnimalID;
 SELECT Animal.ANAME, Handles.ZOOKEEPID
 FROM Animal
 FULL OUTER JOIN Handles
-ON AID = Handles.ANIMALID;
+ON AID = Handles.ANIMALID
+order by Handles.ZOOKEEPID DESC;
 
-SELECT Animal.ANAME, Zookeeper.Zname, (Zookeeper.HourlyRate*Animal.TIMETOFEED)
+SELECT Animal.ANAME, Zookeeper.Zname, (Zookeeper.HourlyRate*Animal.TIMETOFEED) as payout
 FROM Animal
 INNER JOIN Handles
 JOIN Zookeeper ON Handles.ZOOKEEPID = Zookeeper.ZID
 ON Animal.AID = Handles.ANIMALID;
+
+
+SELECT Zookeeper.Zname, sum(Animal.TIMETOFEED) as total_time
+FROM Animal
+INNER JOIN Handles
+JOIN Zookeeper ON Handles.ZOOKEEPID = Zookeeper.ZID
+ON Animal.AID = Handles.ANIMALID 
+group by Zookeeper.Zname;
+
 
 SELECT Handles.Assigned, Zookeeper.ZName, Animal.AName
 FROM Animal
@@ -102,11 +149,27 @@ SELECT DISTINCT Handles.ANIMALID, Animal.ANAME
 FROM Animal
 FULL OUTER JOIN Handles ON AID = Handles.ANIMALID;
 
+/* ***Select the Animals that do not have a handler ** */
 SELECT Animal.AName, AID FROM ANIMAL
 WHERE NOT EXISTS 
       (SELECT ANIMALID 
        FROM HANDLES
        WHERE Animal.AID = Handles.ANIMALID);
+            
+  /* List all combination of animals where the difference between feeding time requirement is within
+0.25 hours (e.g., Grizzly bear, 3, Bengal tiger, 2.75). Hint: this will require a self-join. Avoid
+listing identical pairs such as (Grizzly bear, 3, Grizzly bear, 3) */  
+
+
+select AName, AName_1, timediff from 
+
+(select t1.AName as name1, t2.AName as name2, t1.timetofeed, t2.timetofeed, abs(t1.timetofeed - t2.timetofeed) as timediff
+from animal t1
+cross join animal  t2 ) 
+
+where timediff = 0.25;  
+
+
 
 SELECT * FROM ZOOKEEPER;
 SELECT * FROM ANIMAL;
