@@ -15,11 +15,11 @@ Coursework, files &amp; programs and storage
 ## Coursework In-progress
 
 6. CSC 478: Programming Machine Learning Applications :fallen_leaf: '16
-7. CSC 465: Data Visualization :fallen_leaf: '16
 
 
 ## Coursework Planned (TBD)
 
+7. CSC 465: Data Visualization :snowflake: '16-'17
 8. CSC 555: Mining Big Data :snowflake: '16-'17
 9. CSC 529: Advanced Data Mining :snowflake: '16-'17
 10. CSC 578: Neural Networks and Deep Learning :blossom: '17
