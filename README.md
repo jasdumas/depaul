@@ -17,13 +17,13 @@ Coursework, files &amp; programs and storage
 6. CSC 478: Programming Machine Learning Applications :fallen_leaf: '16
 
 
-## Coursework Planned (TBD)
+## Coursework Planned (TBD) ??
 
 7. CSC 465: Data Visualization :snowflake: '16-'17
 8. CSC 555: Mining Big Data :snowflake: '16-'17
-9. CSC 529: Advanced Data Mining :snowflake: '16-'17
+9. CSC 529: Advanced Data Mining :snowflake: :blossom: '17
 10. CSC 578: Neural Networks and Deep Learning :blossom: '17
-11. CSC 425: Time Series Analysis and Forecasting :blossom: '17
+11. CSC 425: Time Series Analysis and Forecasting :sunny: '17
 12. GEO 441: Geographic Information Systems (Gis) for Community Development :sunny: '17
 13. CSC 521: Monte Carlo Algorithms :fallen_leaf: '17
 14. **Data Analytics Project Capstone** :fallen_leaf: '17
