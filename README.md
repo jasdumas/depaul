@@ -17,7 +17,9 @@ Coursework, files &amp; programs and storage
 6. CSC 478: Programming Machine Learning Applications :fallen_leaf: '16
 
 
-## Coursework Planned (TBD) ??
+## Coursework Planned (TBD) - Going on Leave of Absence until further notice!
+
+**New self-learn plan** -> [Gist of DIY Data Science](https://gist.github.com/jasdumas/89a4f4925485cbbf72a5cee202aa69da)
 
 7. CSC 465: Data Visualization :snowflake: '16-'17
 8. CSC 555: Mining Big Data :snowflake: '16-'17
